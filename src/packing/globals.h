@@ -25,7 +25,6 @@
 
 #define EPS 1e-9
 
-#define SHAPE_RESOLUTION 72
 #define ALLOWFLIPS 1
 #define MAXSTEPS 360000
 #define CYCLES 32
@@ -37,7 +36,8 @@
 
 struct shapetype {
   char name[20];
-  double r[SHAPE_RESOLUTION];
+  int resoution;
+  double *r;
   double maxr;
   double minr;
   int rotsym; /* number of rotational symmetries about central point*/
@@ -54,8 +54,8 @@ struct shape {
 struct image_type {
   double coord_coeffs[DIM][DIM+1];
   /* first index is the output coordinate,
-   second index is input coordinate (+1 is for the constant that is added) 
-   
+   second index is input coordinate (+1 is for the constant that is added)
+
    for example, to work out the new values:
    x_new = coord_coeffs[0][0]*x_old + coord_coeffs[0][1]*y_old + coord_coeffs[0][2];
    y_new = coord_coeffs[1][0]*x_old + coord_coeffs[1][1]*y_old + coord_coeffs[1][2];

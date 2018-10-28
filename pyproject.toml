@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "2d-packing"
+version = "0.1.0"
+description = "Find optimal packings for arbitrary 2D shapes."
+authors = ["Toby Hudson", "Malcolm Ramsay <malramsay64@gmail.com"]
+build = "build.py"
+
+[tool.poetry.dependencies]
+python = "^2.7"
+numpy = ">=0.14"
+
+[tool.poetry.dev-dependencies]
+pytest = "^3.9"
+
+[build-system]
+requires = ["poetry>=0.12", "Cython>=0.29.0", "numpy>=0.14"]
+build-backend = "poetry.masonry.api"
