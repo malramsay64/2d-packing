@@ -1,9 +1,9 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <math.h>
 #include <assert.h>
+#include <math.h>
 #include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #define MAX(a, b) (a > b ? a : b)
 #define MIN(a, b) (a > b ? b : a)
@@ -50,29 +50,28 @@ struct shape {
   double theta; /* rotation from original orientation in radians */
 };
 
-
 struct image_type {
-  double coord_coeffs[DIM][DIM+1];
+  double coord_coeffs[DIM][DIM + 1];
   /* first index is the output coordinate,
    second index is input coordinate (+1 is for the constant that is added)
 
    for example, to work out the new values:
-   x_new = coord_coeffs[0][0]*x_old + coord_coeffs[0][1]*y_old + coord_coeffs[0][2];
-   y_new = coord_coeffs[1][0]*x_old + coord_coeffs[1][1]*y_old + coord_coeffs[1][2];
+   x_new = coord_coeffs[0][0]*x_old + coord_coeffs[0][1]*y_old +
+   coord_coeffs[0][2]; y_new = coord_coeffs[1][0]*x_old +
+   coord_coeffs[1][1]*y_old + coord_coeffs[1][2];
   */
 
   int rotation_offset; /*angles move clockwise*/
-  bool flipped;  /* =1, when flipped using the x-axis as mirror, rotation_offset is then employed if mirror is at y-axis for example */
+  bool flipped; /* =1, when flipped using the x-axis as mirror, rotation_offset
+                   is then employed if mirror is at y-axis for example */
   int sitemirror0;
-  int sitemirror90; /* sitemirror is on the cartesian y-axis */
-  int sitemirror45; /*sitemirror is on forward diagonal: x,x */
+  int sitemirror90;  /* sitemirror is on the cartesian y-axis */
+  int sitemirror45;  /*sitemirror is on forward diagonal: x,x */
   int sitemirror135; /*sitemirror is on backward diagonal: x,-x */
-  int sitemirror30; /*sitemirror is on diagonal: x,2x */
-  int sitemirror60; /*sitemirror is on diagonal: 2x,x */
+  int sitemirror30;  /*sitemirror is on diagonal: x,2x */
+  int sitemirror60;  /*sitemirror is on diagonal: 2x,x */
   int sitemirror330; /*sitemirror is on */
   int sitemirror300; /*sitemirror is on */
-
-
 };
 
 struct wyckoff_type {
@@ -88,7 +87,8 @@ struct wallpaper_group_type {
   char label[MAXGROUPNAME];
   bool a_b_equal;
   bool hexagonal;
-  bool rectangular; /* includes square, which is also specified with a_b_equal=TRUE */
+  bool rectangular; /* includes square, which is also specified with
+                       a_b_equal=TRUE */
   int num_symmetries;
   int num_wyckoffs;
   struct wyckoff_type wyckoffs[MAXWYCKOFFS];
