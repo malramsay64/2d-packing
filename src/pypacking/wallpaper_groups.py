@@ -59,211 +59,237 @@ class WallpaperGroup:
     def num_wyckoffs(self):
         return len(self.wyckoffs)
 
-
-wallpaper_p1 = WallpaperGroup(
-    label="p1",
-    num_symmetries=1,
-    wyckoffs=[
-        WyckoffType(
-            letter="a",
-            site_rotations=1,
-            site_mirrors=1,
-            images=[Image(x_coeffs=[1.0, 0.0, 0.0], y_coeffs=[0.0, 1.0, 0.0])],
-        )
-    ],
-)
-
-wallpaper_p2 = WallpaperGroup(
-    label="p2",
-    num_symmetries=2,
-    wyckoffs=[
-        WyckoffType(
-            letter="a",
-            site_rotations=2,
-            site_mirrors=0,
-            images=[Image(x_coeffs=[0.0, 0.0, 0.0], y_coeffs=[0.0, 0.0, 0.0])],
-        ),
-        WyckoffType(
-            letter="b",
-            site_rotations=2,
-            site_mirrors=0,
-            images=[Image(x_coeffs=[0.0, 0.0, 0.0], y_coeffs=[0.0, 0.0, 0.5])],
-        ),
-        WyckoffType(
-            letter="c",
-            site_rotations=2,
-            site_mirrors=0,
-            images=[Image(x_coeffs=[0.0, 0.0, 0.5], y_coeffs=[0.0, 0.0, 0.0])],
-        ),
-        WyckoffType(
-            letter="d",
-            site_rotations=2,
-            site_mirrors=0,
-            images=[Image(x_coeffs=[0.0, 0.0, 0.5], y_coeffs=[0.0, 0.0, 0.5])],
-        ),
-        WyckoffType(
-            letter="e",
-            site_rotations=1,
-            site_mirrors=0,
-            variability=1,
-            images=[
-                Image(
-                    x_coeffs=[1.0, 0.0, 0.0],
-                    y_coeffs=[0.0, 1.0, 0.0],
-                    rotation_offset=0,
-                ),
-                Image(
-                    x_coeffs=[-1.0, 0.0, 0.0],
-                    y_coeffs=[0.0, -1.0, 0.0],
-                    rotation_offset=pi,
-                ),
-            ],
-        ),
-    ],
-)
-
-wallpaper_pm = WallpaperGroup(
-    label="pm",
-    rectangular=True,
-    num_symmetries=2,
-    wyckoffs=[
-        WyckoffType(
-            letter="a",
-            variability=1,
-            site_rotations=1,
-            site_mirrors=1,
-            images=[
-                Image(
-                    x_coeffs=[0.0, 0.0, 0.0],
-                    y_coeffs=[0.0, 1.0, 0.0],
-                    site_mirror_90=True,
+    def __str__(self):
+        string = ""
+        string += f"Wallpaper group: {self.label}\n"
+        for wyckoff in self.wyckoffs:
+            string += " " * 4 + f"Wyckoff site: {wyckoff.letter}\n"
+            for image in wyckoff.images:
+                string += " " * 8
+                string += "x_new = {:.1f}*x_old + {:.1f}*y_old + {:4.2f}\n".format(
+                    image.x_coeffs[0], image.x_coeffs[1], image.x_coeffs[2]
                 )
-            ],
-        ),
-        WyckoffType(
-            letter="b",
-            variability=1,
-            site_rotations=1,
-            site_mirrors=1,
-            images=[
-                Image(
-                    x_coeffs=[0.0, 0.0, 0.5],
-                    y_coeffs=[0.0, 1.0, 0.0],
-                    site_mirror_90=True,
+                string += " " * 8
+                string += "y_new = {:.1f}*x_old + {:.1f}*y_old + {:4.2f}\n".format(
+                    image.y_coeffs[0], image.y_coeffs[1], image.y_coeffs[2]
                 )
-            ],
-        ),
-        WyckoffType(
-            letter="c",
-            variability=1,
-            site_rotations=1,
-            images=[
-                Image(
-                    x_coeffs=[1.0, 0.0, 0.0],
-                    y_coeffs=[0.0, 1.0, 0.0],
-                    rotation_offset=0,
-                    flipped=False,
-                ),
-                Image(
-                    x_coeffs=[-1.0, 0.0, 0.0],
-                    y_coeffs=[0.0, 1.0, 0.0],
-                    rotation_offset=pi,
-                    flipped=True,
-                ),
-            ],
-        ),
-    ],
-)
 
-wallpaper_pg = WallpaperGroup(
-    label="pg",
-    rectangular=True,
-    num_symmetries=2,
-    wyckoffs=[
-        WyckoffType(
-            letter="a",
-            variability=1,
-            site_rotations=1,
-            images=[
-                Image(
-                    x_coeffs=[1.0, 0.0, 0.0],
-                    y_coeffs=[0.0, 1.0, 0.0],
-                    rotation_offset=0,
-                    flipped=False,
-                ),
-                Image(
-                    x_coeffs=[-1.0, 0.0, 0.0],
-                    y_coeffs=[0.0, 1.0, 0.5],
-                    rotation_offset=pi,
-                    flipped=True,
-                ),
-            ],
-        )
-    ],
-)
 
-wallpaper_cm = WallpaperGroup(
-    label="cm",
-    rectangular=True,
-    num_symmetries=4,
-    wyckoffs=[
-        WyckoffType(
-            letter="a",
-            variability=True,
-            site_rotations=1,
-            site_mirrors=1,
-            images=[
-                Image(
-                    x_coeffs=[0.0, 0.0, 0.0],
-                    y_coeffs=[0.0, 1.0, 0.0],
-                    site_mirror_90=True,
-                ),
-                Image(
-                    x_coeffs=[0.0, 0.0, 0.5],
-                    y_coeffs=[0.0, 1.0, 0.5],
-                    site_mirror_90=True,
-                ),
-            ],
-        ),
-        WyckoffType(
-            letter="b",
-            variability=True,
-            site_rotations=1,
-            site_mirrors=0,
-            images=[
-                Image(
-                    x_coeffs=[1.0, 0.0, 0.0],
-                    y_coeffs=[0.0, 1.0, 0.0],
-                    rotation_offset=0,
-                    flipped=False,
-                ),
-                Image(
-                    x_coeffs=[-1.0, 0.0, 0.0],
-                    y_coeffs=[0.0, 1.0, 0.0],
-                    rotation_offset=pi,
-                    flipped=True,
-                ),
-                Image(
-                    x_coeffs=[1.0, 0.0, 0.5],
-                    y_coeffs=[0.0, 1.0, 0.5],
-                    rotation_offset=0,
-                    flipped=False,
-                ),
-                Image(
-                    x_coeffs=[-1.0, 0.0, 0.5],
-                    y_coeffs=[0.0, 1.0, 0.5],
-                    rotation_offset=pi,
-                    flipped=True,
-                ),
-            ],
-        ),
-    ],
-)
+def wallpaper_p1():
+    return WallpaperGroup(
+        label="p1",
+        num_symmetries=1,
+        wyckoffs=[
+            WyckoffType(
+                letter="a",
+                site_rotations=1,
+                site_mirrors=1,
+                images=[Image(x_coeffs=[1.0, 0.0, 0.0], y_coeffs=[0.0, 1.0, 0.0])],
+            )
+        ],
+    )
 
-wallpaper_groups = [
-    wallpaper_p1,
-    wallpaper_p2,
-    wallpaper_pg,
-    wallpaper_pm,
-    wallpaper_cm,
-]
+
+def wallpaper_p2():
+    return WallpaperGroup(
+        label="p2",
+        num_symmetries=2,
+        wyckoffs=[
+            WyckoffType(
+                letter="a",
+                site_rotations=2,
+                site_mirrors=0,
+                images=[Image(x_coeffs=[0.0, 0.0, 0.0], y_coeffs=[0.0, 0.0, 0.0])],
+            ),
+            WyckoffType(
+                letter="b",
+                site_rotations=2,
+                site_mirrors=0,
+                images=[Image(x_coeffs=[0.0, 0.0, 0.0], y_coeffs=[0.0, 0.0, 0.5])],
+            ),
+            WyckoffType(
+                letter="c",
+                site_rotations=2,
+                site_mirrors=0,
+                images=[Image(x_coeffs=[0.0, 0.0, 0.5], y_coeffs=[0.0, 0.0, 0.0])],
+            ),
+            WyckoffType(
+                letter="d",
+                site_rotations=2,
+                site_mirrors=0,
+                images=[Image(x_coeffs=[0.0, 0.0, 0.5], y_coeffs=[0.0, 0.0, 0.5])],
+            ),
+            WyckoffType(
+                letter="e",
+                site_rotations=1,
+                site_mirrors=0,
+                variability=1,
+                images=[
+                    Image(
+                        x_coeffs=[1.0, 0.0, 0.0],
+                        y_coeffs=[0.0, 1.0, 0.0],
+                        rotation_offset=0,
+                    ),
+                    Image(
+                        x_coeffs=[-1.0, 0.0, 0.0],
+                        y_coeffs=[0.0, -1.0, 0.0],
+                        rotation_offset=pi,
+                    ),
+                ],
+            ),
+        ],
+    )
+
+
+def wallpaper_pm():
+    return WallpaperGroup(
+        label="pm",
+        rectangular=True,
+        num_symmetries=2,
+        wyckoffs=[
+            WyckoffType(
+                letter="a",
+                variability=1,
+                site_rotations=1,
+                site_mirrors=1,
+                images=[
+                    Image(
+                        x_coeffs=[0.0, 0.0, 0.0],
+                        y_coeffs=[0.0, 1.0, 0.0],
+                        site_mirror_90=True,
+                    )
+                ],
+            ),
+            WyckoffType(
+                letter="b",
+                variability=1,
+                site_rotations=1,
+                site_mirrors=1,
+                images=[
+                    Image(
+                        x_coeffs=[0.0, 0.0, 0.5],
+                        y_coeffs=[0.0, 1.0, 0.0],
+                        site_mirror_90=True,
+                    )
+                ],
+            ),
+            WyckoffType(
+                letter="c",
+                variability=1,
+                site_rotations=1,
+                images=[
+                    Image(
+                        x_coeffs=[1.0, 0.0, 0.0],
+                        y_coeffs=[0.0, 1.0, 0.0],
+                        rotation_offset=0,
+                        flipped=False,
+                    ),
+                    Image(
+                        x_coeffs=[-1.0, 0.0, 0.0],
+                        y_coeffs=[0.0, 1.0, 0.0],
+                        rotation_offset=pi,
+                        flipped=True,
+                    ),
+                ],
+            ),
+        ],
+    )
+
+
+def wallpaper_pg():
+    return WallpaperGroup(
+        label="pg",
+        rectangular=True,
+        num_symmetries=2,
+        wyckoffs=[
+            WyckoffType(
+                letter="a",
+                variability=1,
+                site_rotations=1,
+                images=[
+                    Image(
+                        x_coeffs=[1.0, 0.0, 0.0],
+                        y_coeffs=[0.0, 1.0, 0.0],
+                        rotation_offset=0,
+                        flipped=False,
+                    ),
+                    Image(
+                        x_coeffs=[-1.0, 0.0, 0.0],
+                        y_coeffs=[0.0, 1.0, 0.5],
+                        rotation_offset=pi,
+                        flipped=True,
+                    ),
+                ],
+            )
+        ],
+    )
+
+
+def wallpaper_cm():
+    return WallpaperGroup(
+        label="cm",
+        rectangular=True,
+        num_symmetries=4,
+        wyckoffs=[
+            WyckoffType(
+                letter="a",
+                variability=True,
+                site_rotations=1,
+                site_mirrors=1,
+                images=[
+                    Image(
+                        x_coeffs=[0.0, 0.0, 0.0],
+                        y_coeffs=[0.0, 1.0, 0.0],
+                        site_mirror_90=True,
+                    ),
+                    Image(
+                        x_coeffs=[0.0, 0.0, 0.5],
+                        y_coeffs=[0.0, 1.0, 0.5],
+                        site_mirror_90=True,
+                    ),
+                ],
+            ),
+            WyckoffType(
+                letter="b",
+                variability=True,
+                site_rotations=1,
+                site_mirrors=0,
+                images=[
+                    Image(
+                        x_coeffs=[1.0, 0.0, 0.0],
+                        y_coeffs=[0.0, 1.0, 0.0],
+                        rotation_offset=0,
+                        flipped=False,
+                    ),
+                    Image(
+                        x_coeffs=[-1.0, 0.0, 0.0],
+                        y_coeffs=[0.0, 1.0, 0.0],
+                        rotation_offset=pi,
+                        flipped=True,
+                    ),
+                    Image(
+                        x_coeffs=[1.0, 0.0, 0.5],
+                        y_coeffs=[0.0, 1.0, 0.5],
+                        rotation_offset=0,
+                        flipped=False,
+                    ),
+                    Image(
+                        x_coeffs=[-1.0, 0.0, 0.5],
+                        y_coeffs=[0.0, 1.0, 0.5],
+                        rotation_offset=pi,
+                        flipped=True,
+                    ),
+                ],
+            ),
+        ],
+    )
+
+
+def all_wallpaper_groups():
+    return [
+        wallpaper_p1(),
+        wallpaper_p2(),
+        wallpaper_pg(),
+        wallpaper_pm(),
+        wallpaper_cm(),
+    ]
