@@ -1,16 +1,12 @@
 /*######################  RANDOM NUMBER GENERATOR  #########################*/
 #include "fluke.h"
-#include <stdio.h>
-
-#define NO 0
-#define YES 1
 
 int initialized = NO, i97, j97;
 double urand[98], crand, cdrand, cmrand;
 
 extern long seed1, seed2;
 
-double Fluke(void) { /*   FlukeInit() must be called to initialize Fluke() */
+double fluke(void) { /*   FlukeInit() must be called to initialize Fluke() */
   double uni;
 
   if (initialized == NO) {
