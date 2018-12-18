@@ -1,6 +1,4 @@
-#include <exception>
-#include <string>
-#include <vector>
+#include <cmath>
 
 #ifndef GLOBALS_H
 #define GLOBALS_H
@@ -22,8 +20,12 @@
 
 #define WARNINGS 0
 
-class ClashRejection : public std::exception {
-  const char* what() const throw() { return "Found an unreoslvable clash of shapes."; }
-} ClashRejection;
+double
+temperature_distribution(double old_val, double new_val, double kT, size_t replicas) {
+  return std::exp(
+      ((1.0 / old_val - 1.0 / new_val) / kT) + replicas * std::log(old_val / new_val));
+}
+
+template <typename T> int sign(T val) { return (T(0) < val) - (val < T(0)); }
 
 #endif /* GLOBALS_H */

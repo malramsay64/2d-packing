@@ -1,9 +1,9 @@
 #include "fluke.h"
 #include <algorithm>
+#include <cmath>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
-#include <math.h>
 #include <string>
 #include <vector>
 
@@ -16,6 +16,9 @@ double positive_modulo(double i, double n) { return std::fmod(std::fmod(i, n) + 
 
 int positive_modulo(int i, int n) { return ((i % n) + n) % n; }
 
+// Forward declaration of Site class
+class Site;
+
 struct Vect2 {
   double x;
   double y;
@@ -25,18 +28,28 @@ struct Vect2 {
   Vect2 operator+(const Vect2& other) const {
     return Vect2(this->x + other.x, this->y + other.y);
   }
-
   Vect2 operator-(const Vect2& other) const {
     return Vect2(this->x - other.x, this->y - other.y);
   }
-
   Vect2 operator*(const Vect2& other) const {
     return Vect2(this->x * other.x, this->y * other.y);
+  }
+  Vect2 operator*(const float other) const {
+    return Vect2(this->x * other, this->y * other);
+  }
+  Vect2 operator==(const Vect2& other) const {
+    return Vect2(this->x == other.x, this->y == other.y);
   }
 
   inline double norm_sq() { return this->x * this->x + this->y * this->y; }
   inline double norm() { return sqrt(this->norm_sq()); }
 };
+
+Vect2& positive_modulo(Vect2& v, double modulo) {
+  v.x = positive_modulo(v.x, modulo);
+  v.y = positive_modulo(v.y, modulo);
+  return v;
+}
 
 struct Vect3 {
   double x;
@@ -46,56 +59,105 @@ struct Vect3 {
   Vect3(double x, double y, double z) : x(x), y(y), z(z){};
 };
 
-struct Int2 {
-  int x;
-  int y;
+class Basis {
+protected:
+  double value_previous;
+  double value;
 
-  bool operator==(const Int2& other) const {
-    return this->x == other.x && this->y == other.y;
-  }
-};
-
-struct Basis {
-  double* value;
+public:
   double min_val;
   double max_val;
-  bool fixed = false;
-  bool mirror = false;
-  bool cell_side = false;
-  bool cell_angle = false;
+  double step_size = 1;
 
-  Basis(
-      double* value,
-      double min_val,
-      double max_val,
-      bool fixed,
-      bool mirror,
-      bool cell_side)
-      : value(value), min_val(min_val), max_val(max_val), fixed(fixed), mirror(mirror),
-        cell_side(cell_side){};
-  Basis(double* value, bool mirror) : Basis(value, *value, *value, true, true, false){};
-  Basis(double* value) : Basis(value, *value, *value, true, false, false){};
-  Basis() : Basis(0){};
+  Basis(double value, double min_val, double max_val, double step_size)
+      : value(value), min_val(min_val), max_val(max_val), step_size(step_size){};
+  Basis(double value, double min_val, double max_val)
+      : Basis(value, min_val, max_val, 1){};
 
   double value_range() const { return this->max_val - this->min_val; };
-  void validate() {
-    if (*this->value < min_val) {
-      *this->value = min_val;
-    } else if (*this->value > max_val) {
-      *this->value = max_val;
-    }
-  }
+  double get_value() const { return this->value; };
+  void set_value(double new_value);
+  void reset_value() { this->value = this->value_previous; };
+  double get_random_value(double kT) const;
+};
+
+class CellLengthBasis : public Basis {
+public:
+  double step_size;
+
+  CellLengthBasis(double value, double min_val, double max_val, double step_size)
+      : Basis(value, min_val, max_val), step_size(step_size){};
+
+  double get_random_value(double kT) const;
+};
+
+class CellAngleBasis : public Basis {
+private:
+  void update_cell_lengths();
+  void reset_cell_lengths();
+
+public:
+  double step_size;
+  Basis* cell_x_len;
+  Basis* cell_y_len;
+
+  CellAngleBasis(
+      double value,
+      double min_val,
+      double max_val,
+      double step_size,
+      Basis* cell_x_len,
+      Basis* cell_y_len)
+      : Basis(value, min_val, max_val), step_size(step_size), cell_x_len(cell_x_len),
+        cell_y_len(cell_y_len){};
+
+  void set_value(double new_value);
+  void reset_value();
+  double get_random_value(double kT) const;
+};
+
+class FixedBasis : public Basis {
+public:
+  FixedBasis(double value) : Basis(value, value, value){};
+
+  void set_value(double new_value){};
+  void reset_value(){};
+};
+
+class MirrorBasis : public Basis {
+public:
+  int mirrors;
+
+  MirrorBasis(double value, double min_val, double max_val, int mirrors)
+      : Basis(value, min_val, max_val), mirrors(mirrors){};
+
+  double get_random_value(double kT) const;
+};
+
+class FlipBasis : public Basis {
+private:
+  std::vector<Site>* occupied_sites;
+  int value_previous;
+
+public:
+  FlipBasis(std::vector<Site>* occupied_sites)
+      : Basis(0, 0, occupied_sites->size()), occupied_sites(occupied_sites){};
+
+  double get_random_value(double kT) const;
+  void set_value(double new_value);
+  void reset_value();
 };
 
 struct Cell {
-  double x_len;
-  double y_len;
-  double angle;
+  Basis* x_len;
+  Basis* y_len;
+  Basis* angle;
 
-  Cell() : x_len(0), y_len(0), angle(0){};
-
-  Vect2 fractional_to_real(const Vect2&);
-  double area() const { return this->x_len * this->y_len * fabs(sin(this->angle)); };
+  Vect2 fractional_to_real(const Vect2&) const;
+  double area() const {
+    return this->x_len->get_value() * this->y_len->get_value() *
+           fabs(sin(this->angle->get_value()));
+  };
 };
 
 class Shape {
@@ -122,14 +184,6 @@ public:
   double area() const;
 };
 
-class ShapeInstance {
-public:
-  ShapeInstance(Shape* shape);
-  Shape* shape;
-  double x, y;
-  double theta;
-};
-
 /*! \enum mirror
  *
  *  Detailed description
@@ -147,7 +201,7 @@ enum mirror {
 
 class ImageType {
 public:
-  ImageType(Vect3 x_coeffs, Vect3 y_coeffs, int rotation_offset);
+  ImageType(Vect3 x_coeffs, Vect3 y_coeffs, double rotation_offset);
   Vect3 x_coeffs;
   Vect3 y_coeffs;
   /* first index is the output coordinate,
@@ -158,10 +212,13 @@ public:
    coord_coeffs[0][2]; y_new = coord_coeffs[1][0]*x_old +
    coord_coeffs[1][1]*y_old + coord_coeffs[1][2];
   */
-  int rotation_offset; /*angles move clockwise*/
-  bool flipped;        /* =1, when flipped using the x-axis as mirror, rotation_offset
-                          is then employed if mirror is at y-axis for example */
-  mirror site_mirror;
+  double rotation_offset; /*angles move clockwise*/
+  bool flipped; /* =1, when flipped using the x-axis as mirror, rotation_offset
+                   is then employed if mirror is at y-axis for example */
+  enum mirror site_mirror;
+
+  Vect2 real_to_fractional(const Vect3& real) const;
+  Vect2 real_to_fractional(const Site& site) const;
 };
 
 class WyckoffType {
@@ -174,14 +231,46 @@ public:
   std::vector<ImageType> image;
 };
 
-struct Site {
-  size_t wyckoff_index;
-  double x = 0;
-  double y = 0;
-  double angle = 0;
+class Site {
+public:
+  WyckoffType* wyckoff;
+  Basis* x;
+  Basis* y;
+  Basis* angle;
   bool flip_site = false;
 
-  Vect3 site_variables() const { return Vect3(this->x, this->y, this->angle); };
+  Vect3 site_variables() const {
+    return Vect3(this->x->get_value(), this->y->get_value(), this->angle->get_value());
+  };
+  Vect2 get_position() const {
+    return Vect2(this->x->get_value(), this->y->get_value());
+  };
+  int get_flip_sign() const { return this->flip_site ? 1 : -1; };
+  int get_multiplicity() const { return this->wyckoff->multiplicity; };
+};
+
+class ShapeInstance {
+public:
+  ShapeInstance(const Shape& shape, Site& site, ImageType& image)
+      : shape(&shape), site(&site), image(&image){};
+  const Shape* shape;
+  Site* site;
+  ImageType* image;
+
+  bool operator==(const ShapeInstance& other) const {
+    return (
+        this->shape == other.shape && this->site == other.site &&
+        this->image == other.image);
+  };
+
+  Vect2 get_fractional_coordinates() const {
+    return this->image->real_to_fractional(*this->site);
+  }
+  Vect2 get_real_coordinates() const { return this->site->get_position(); };
+  double get_angle() const { return this->site->angle->get_value(); };
+  double get_rotational_offset() const { return this->image->rotation_offset; };
+  bool get_flipped() const { return this->image->flipped ^ this->site->flip_site; };
+  bool pair_clash(ShapeInstance& other) const;
 };
 
 class WallpaperGroup {
@@ -194,14 +283,6 @@ public:
   int num_symmetries = 0;
   std::vector<WyckoffType> wyckoffs;
   int num_wyckoffs;
-
-  const WyckoffType& get_wyckoff(const Site& site) const {
-    return this->wyckoffs[site.wyckoff_index];
-  }
-
-  WyckoffType& get_wyckoff(const Site& site) {
-    return this->wyckoffs[site.wyckoff_index];
-  }
 
   size_t group_multiplicity() const;
 };
