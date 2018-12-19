@@ -1,13 +1,12 @@
+#include <pybind11/pybind11.h>
 #include <stdio.h>
 
 #ifndef FLUKE_H
 #define FLUKE_H
 
-#define NO 0
-#define YES 1
-
 double fluke(void);
-void TestFluke(void);
 void FlukeInit(void);
+
+void export_fluke(pybind11::module& m);
 
 #endif /* FLUKE_H */

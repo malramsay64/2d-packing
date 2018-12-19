@@ -1,17 +1,20 @@
 /*######################  RANDOM NUMBER GENERATOR  #########################*/
-#include "fluke.h"
+#include "random.h"
 
-int initialized = NO, i97, j97;
+namespace py = pybind11;
+
+bool initialized = false;
+int i97, j97;
 double urand[98], crand, cdrand, cmrand;
 
 extern long seed1, seed2;
 
-double fluke(void) { /*   FlukeInit() must be called to initialize Fluke() */
+double fluke(void) {
   double uni;
 
-  if (initialized == NO) {
+  /*   FlukeInit() must be called to initialize Fluke() */
+  if (initialized == false) {
     FlukeInit();
-    initialized = YES;
   }
 
   uni = urand[i97] - urand[j97];
@@ -84,5 +87,7 @@ void FlukeInit(void) {
   cmrand = 16777213.0 / 16777216.0;
   i97 = 97;
   j97 = 33;
-  initialized = YES;
+  initialized = true;
 }
+
+void export_fluke(py::module& m) { m.def("fluke", &fluke); }
