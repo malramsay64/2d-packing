@@ -6,11 +6,8 @@ python:
   - 3.6
   - 3.7
 
-before_install:
-  - pip install poetry
-
 install:
-  - poetry install
+  - pip install .[dev]
 
 script:
-  - poetry run pytest
+  - pytest
