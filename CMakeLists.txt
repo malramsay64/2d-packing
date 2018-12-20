@@ -9,6 +9,8 @@ message("Found python3 executable: ${Python3_EXECUTABLE}")
 
 find_package(pybind11 REQUIRED)
 
+include_directories(src/spdlog/include)
+
 set(SOURCES src/packing/module.cpp
             src/packing/math.cpp
             src/packing/random.cpp

@@ -1,4 +1,5 @@
 #include "wallpaper.h"
+#include <spdlog/sinks/stdout_color_sinks.h>
 
 // To find orientation of ordered triplet (a, b, c).
 // The function returns following values

@@ -8,7 +8,6 @@
 #include "random.h"
 #include "shapes.h"
 #include <cmath>
-#include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/spdlog.h>
 #include <string>
 #include <vector>
