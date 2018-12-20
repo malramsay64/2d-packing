@@ -5,15 +5,17 @@
  * Distributed under terms of the MIT license.
  */
 
-#include "random.h"
 #include <pybind11/pybind11.h>
 
-PYBIND11_MODULE(packing, m) {
+double fluked() { return 0.; }
+
+PYBIND11_MODULE(_packing, m) {
+  m.attr("__name__") = "pypacking._packing";
   m.doc() = R"pbdoc(
       Pybind11 test
       -------------
       )pbdoc";
-  m.def("fluke", &fluke, R"pbdoc(
+  m.def("fluke", &fluked, R"pbdoc(
       Generate a random number
       )pbdoc");
 
