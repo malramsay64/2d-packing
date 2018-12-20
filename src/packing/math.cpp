@@ -37,8 +37,11 @@ Vect2& positive_modulo(Vect2& v, double modulo) {
   return v;
 }
 
-double
-temperature_distribution(double old_val, double new_val, double kT, size_t replicas) {
+double temperature_distribution(
+    double old_val,
+    double new_val,
+    double kT,
+    std::size_t replicas) {
   return std::exp(
       ((1.0 / old_val - 1.0 / new_val) / kT) + replicas * std::log(old_val / new_val));
 }

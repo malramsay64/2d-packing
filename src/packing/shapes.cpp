@@ -121,7 +121,7 @@ void Shape::plot(const std::string& filename) const {
   std::ofstream outfile;
   outfile.open(filename, std::ios::out);
 
-  for (size_t i = 0; i < this->radial_points.size(); ++i) {
+  for (std::size_t i = 0; i < this->radial_points.size(); ++i) {
     angle = this->angular_step() * i;
     outfile << std::fixed << std::setprecision(12)
             << this->radial_points[i] * cos(angle) << " "
@@ -133,7 +133,7 @@ void Shape::plot(const std::string& filename) const {
 double Shape::area() const {
   /* a calculation of the area of the polygon */
   double areasum = 0.0;
-  for (size_t i = 0; i < this->radial_points.size(); ++i) {
+  for (std::size_t i = 0; i < this->radial_points.size(); ++i) {
     areasum += 0.5 * this->radial_points[i] *
                this->radial_points[(i + 1) % this->resolution()] * this->angular_step();
   }
@@ -209,8 +209,8 @@ bool ShapeInstance::pair_clash(ShapeInstance& other) const {
   return true;
 }
 
-size_t group_multiplicity(const std::vector<Site>& occupied_sites) {
-  size_t total_multiplicity = 0;
+std::size_t group_multiplicity(const std::vector<Site>& occupied_sites) {
+  std::size_t total_multiplicity = 0;
   for (const Site& site : occupied_sites) {
     total_multiplicity = site.wyckoff->multiplicity;
   }

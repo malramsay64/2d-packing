@@ -5,6 +5,7 @@
  * Distributed under terms of the MIT license.
  */
 #include <cmath>
+#include <cstddef>
 
 #ifndef MATH_H
 #define MATH_H
@@ -42,8 +43,11 @@ struct Vect3 {
   Vect3(double x, double y, double z) : x(x), y(y), z(z){};
 };
 
-double
-temperature_distribution(double old_val, double new_val, double kT, size_t replicas);
+double temperature_distribution(
+    double old_val,
+    double new_val,
+    double kT,
+    std::size_t replicas);
 
 bool is_close(float value, float expected, float rel_tol = 1e-8);
 
