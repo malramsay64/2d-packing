@@ -8,6 +8,8 @@
 
 """"""
 
+import math
+
 import pytest
 
 from _packing import Shape
@@ -31,3 +33,15 @@ def test_get_points(shape):
         shape.get_point(4)
     with pytest.raises(IndexError):
         shape.get_point(-1)
+
+
+def test_resolution(shape):
+    assert shape.resolution() == 4
+
+
+def test_angular_step(shape):
+    assert math.isclose(shape.angular_step(), math.pi / 2)
+
+
+def test_area(shape):
+    assert math.isclose(shape.area(), 2)

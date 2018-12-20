@@ -44,12 +44,17 @@ void Shape::plot(const std::string& filename) const {
   outfile.close();
 };
 
+/* This uses the side-angle-side method of calculating the area, that is
+ *     Area = side_a * side_b * sin(angle_ab)
+ * In this case the angle is the same for every triangle so is precomputed above.
+ */
 double Shape::area() const {
-  /* a calculation of the area of the polygon */
   double areasum = 0.0;
-  for (std::size_t i = 0; i < this->radial_points.size(); ++i) {
-    areasum += 0.5 * this->radial_points[i] *
-               this->radial_points[(i + 1) % this->resolution()] * this->angular_step();
+  double angle = std::sin(this->angular_step());
+  for (std::size_t index = 0; index < this->radial_points.size(); ++index) {
+    std::size_t next_index = (index + 1) % this->radial_points.size();
+    areasum +=
+        0.5 * this->radial_points[index] * this->radial_points[next_index] * angle;
   }
   return areasum;
 }
@@ -81,6 +86,15 @@ Vect2 ImageType::real_to_fractional(const Site& site) const {
         this->y_coeffs.y * site.y->get_value() + this->y_coeffs.z;
   return positive_modulo(v, 1.);
 }
+
+Vect3 Site::site_variables() const {
+  return Vect3(this->x->get_value(), this->y->get_value(), this->angle->get_value());
+};
+Vect2 Site::get_position() const {
+  return Vect2(this->x->get_value(), this->y->get_value());
+};
+int Site::get_flip_sign() const { return this->flip_site ? 1 : -1; };
+int Site::get_multiplicity() const { return this->wyckoff->multiplicity; };
 
 bool ShapeInstance::operator==(const ShapeInstance& other) const {
   return (
@@ -145,9 +159,16 @@ std::string create_filename(
 
 void export_Shape(py::module& m) {
   py::class_<Shape> shape(m, "Shape");
-  shape.def(py::init<const std::string&, const std::vector<double>&, int, int>())
+  shape
+      .def(
+          py::init<const std::string&, const std::vector<double>&, int, int>(),
+          py::arg("name"),
+          py::arg("radial_points"),
+          py::arg("rotational_symmetries") = 0,
+          py::arg("mirrors") = 0)
       .def("resolution", &Shape::resolution)
       .def("plot", &Shape::plot)
       .def("angular_step", &Shape::angular_step)
-      .def("get_point", &Shape::get_point);
+      .def("get_point", &Shape::get_point)
+      .def("area", &Shape::area);
 }
