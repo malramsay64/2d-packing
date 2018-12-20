@@ -6,6 +6,7 @@
  */
 
 #include "random.h"
+#include "shapes.h"
 #include <pybind11/pybind11.h>
 
 PYBIND11_MODULE(_packing, m) {
@@ -15,6 +16,7 @@ PYBIND11_MODULE(_packing, m) {
       -------------
       )pbdoc";
   export_fluke(m);
+  export_Shape(m);
 
 #ifdef VERSION_INFO
   m.attr("__version__") = VERSION_INFO;

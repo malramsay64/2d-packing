@@ -1,5 +1,8 @@
 #include "shapes.h"
 #include <cassert>
+#include <pybind11/stl.h>
+
+namespace py = pybind11;
 
 double Basis::value_range() const { return this->max_val - this->min_val; };
 
@@ -224,4 +227,13 @@ std::string create_filename(
                   << "_" << site_list << "_" << std::fixed << std::setprecision(3)
                   << shape.shape_var << ".svg";
   return stream_filename.str();
+}
+
+void export_Shape(py::module& m) {
+  py::class_<Shape> shape(m, "Shape");
+  shape.def(py::init<const std::string&, const std::vector<double>&, int, int>())
+      .def("resolution", &Shape::resolution)
+      .def("plot", &Shape::plot)
+      .def("angular_step", &Shape::angular_step)
+      .def("get_point", &Shape::get_point);
 }

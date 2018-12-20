@@ -5,6 +5,7 @@
 #include <fstream>
 #include <iomanip>
 #include <iostream>
+#include <pybind11/pybind11.h>
 #include <string>
 #include <vector>
 
@@ -229,5 +230,7 @@ std::string create_filename(
     const WallpaperGroup& group,
     const std::string site_list,
     const std::string& directory);
+
+void export_Shape(pybind11::module& m);
 
 #endif /* SHAPES_H */
