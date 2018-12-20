@@ -17,10 +17,11 @@ from setuptools.command.build_ext import build_ext
 
 def ext_modules():
     ext_path = Path("src/packing")
+    ext_files = ["module.cpp", "random.cpp", "shapes.cpp", "wallpaper.cpp"]
     modules = [
         Extension(
             "_packing",
-            [str(file) for file in ext_path.glob("*.cpp")],
+            [str(ext_path/file) for file in ext_files],
             include_dirs=[
                 # Path to pybind11 headers
                 pybind11.get_include(),
