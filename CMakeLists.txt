@@ -5,11 +5,10 @@ project(packing)
 
 find_package(Python3 COMPONENTS Interpreter REQUIRED)
 
-message("Found python3 executable: ${Python3_EXECUTABLE}")
+include_directories(src/spdlog/include)
+include_directories(src/pybind11/include)
 
 find_package(pybind11 REQUIRED)
-
-include_directories(src/spdlog/include)
 
 set(SOURCES src/packing/module.cpp
             src/packing/math.cpp
