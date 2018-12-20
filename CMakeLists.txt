@@ -12,6 +12,7 @@ add_subdirectory(src/pybind11)
 set(SOURCES src/packing/module.cpp
             src/packing/math.cpp
             src/packing/random.cpp
+            src/packing/basis.cpp
             src/packing/shapes.cpp
             src/packing/wallpaper.cpp
             )
