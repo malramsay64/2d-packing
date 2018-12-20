@@ -3,7 +3,7 @@ cmake_minimum_required (VERSION 3.12)
 # projectname is the same as the main-executable
 project(packing)
 
-find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
+find_package(Python3 COMPONENTS Interpreter REQUIRED)
 
 message("Found python3 executable: ${Python3_EXECUTABLE}")
 
