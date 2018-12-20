@@ -8,7 +8,7 @@
 #ifndef WALLPAPER_H
 #define WALLPAPER_H
 
-#include "fluke.h"
+#include "random.h"
 #include "globals.h"
 #include "shapes.h"
 #include <cmath>

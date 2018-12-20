@@ -176,8 +176,6 @@ bool ShapeInstance::pair_clash(ShapeInstance& other) const {
   if (this->shape->resolution() != other.shape->resolution()) {
     throw "Resolutions of shapes are not equal";
   }
-  const int resolution = this->shape->resolution();
-  double angular_step = 2.0 * PI / resolution;
 
   double max_contact_dist_squared =
       std::pow(this->shape->max_radius + other.shape->max_radius, 2);
@@ -191,6 +189,5 @@ bool ShapeInstance::pair_clash(ShapeInstance& other) const {
   if (max_contact_dist_squared > central_dist_sqaured) {
     return false;
   }
+  return true;
 }
-
-bool ShapeInstance::indirect_clash(ShapeInstance& other) {}

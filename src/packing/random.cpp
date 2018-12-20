@@ -90,4 +90,6 @@ void FlukeInit(void) {
   initialized = true;
 }
 
-void export_fluke(py::module& m) { m.def("fluke", &fluke); }
+double fluked() { return 1; }
+
+void export_fluke(py::module& m) { m.def("fluke", &fluked); }

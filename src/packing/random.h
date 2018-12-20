@@ -6,6 +6,7 @@
 
 double fluke(void);
 void FlukeInit(void);
+double fluked();
 
 void export_fluke(pybind11::module& m);
 

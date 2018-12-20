@@ -7,24 +7,29 @@
 # Distributed under terms of the MIT license.
 
 import sys
+from pathlib import Path
 
 import pybind11
 import setuptools
 from setuptools import Extension
 from setuptools.command.build_ext import build_ext
 
-ext_modules = [
-    Extension(
-        "_packing",
-        ["src/packing/module.cpp"],
-        include_dirs=[
-            # Path to pybind11 headers
-            pybind11.get_include(),
-            pybind11.get_include(user=True),
-        ],
-        language="c++",
-    )
-]
+
+def ext_modules():
+    ext_path = Path("src/packing")
+    modules = [
+        Extension(
+            "_packing",
+            [str(file) for file in ext_path.glob("*.cpp")],
+            include_dirs=[
+                # Path to pybind11 headers
+                pybind11.get_include(),
+                pybind11.get_include(user=True),
+            ],
+            language="c++",
+        )
+    ]
+    return modules
 
 
 # As of Python 3.6, CCompiler has a `has_flag` method.
@@ -81,5 +86,5 @@ class BuildExt(build_ext):
 
 def build(setup_kwargs):
     setup_kwargs.update(
-        {"ext_modules": ext_modules, "cmdclass": {"build_ext": BuildExt}}
+        {"ext_modules": ext_modules(), "cmdclass": {"build_ext": BuildExt}}
     )

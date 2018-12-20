@@ -5,9 +5,8 @@
  * Distributed under terms of the MIT license.
  */
 
+#include "random.h"
 #include <pybind11/pybind11.h>
-
-double fluked() { return 0.; }
 
 PYBIND11_MODULE(_packing, m) {
   m.attr("__name__") = "pypacking._packing";

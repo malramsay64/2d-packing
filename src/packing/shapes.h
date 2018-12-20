@@ -1,4 +1,5 @@
-#include "fluke.h"
+#include "math.h"
+#include "random.h"
 #include <algorithm>
 #include <cmath>
 #include <fstream>
@@ -9,8 +10,6 @@
 
 #ifndef SHAPES_H
 #define SHAPES_H
-
-#include "math.h"
 
 // Forward declaration of Site class
 class Site;
