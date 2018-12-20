@@ -14,8 +14,26 @@ import sys
 from distutils.version import LooseVersion
 
 import pybind11
-from setuptools import Extension
+from setuptools import Extension, setup, find_packages
 from setuptools.command.build_ext import build_ext
+
+def get_version():
+    g = {}
+    exec(open("src/pypacking/version.py").read(), g)
+    return g["__version__"]
+
+install_requires = [
+    "numpy~=1.14",
+    "click~=7.0",
+    "attrs",
+    "pybind11~=2.2",
+]
+
+dev_requires = [
+    "pytest~=3.9",
+    "black==18.9b0",
+    "pylint",
+]
 
 
 class CMakeExtension(Extension):
@@ -34,13 +52,6 @@ class CMakeBuild(build_ext):
                 + ", ".join(e.name for e in self.extensions)
             )
 
-        if platform.system() == "Windows":
-            cmake_version = LooseVersion(
-                re.search(r"version\s*([\d.]+)", out.decode()).group(1)
-            )
-            if cmake_version < "3.1.0":
-                raise RuntimeError("CMake >= 3.1.0 is required on Windows")
-
         for ext in self.extensions:
             self.build_extension(ext)
 
@@ -49,7 +60,6 @@ class CMakeBuild(build_ext):
         cmake_args = [
             "-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=" + extdir,
             "-DPYTHON_EXECUTABLE=" + sys.executable,
-            "-Dpybind11_DIR=" + pybind11.get_include(),
         ]
 
         cfg = "Debug" if self.debug else "Release"
@@ -79,12 +89,18 @@ class CMakeBuild(build_ext):
             ["cmake", "--build", "."] + build_args, cwd=self.build_temp
         )
 
-
-def build(setup_kwargs):
-    setup_kwargs.update(
-        {
-            "ext_modules": [CMakeExtension("_packing")],
-            "cmdclass": {"build_ext": CMakeBuild},
-            "package_dir": {"": "src"},
-        }
-    )
+setup(
+    name="pypacking",
+    version=get_version(),
+    python_requires=">=3.6",
+    install_requires = install_requires,
+    packages=find_packages("src"),
+    package_dir= {"": "src"},
+    include_package_data=True,
+    extras_require={"dev": dev_requires},
+    ext_modules=[CMakeExtension("_packing")],
+    cmdclass= {"build_ext": CMakeBuild},
+    url="https://github.com/malramsay64/2d-packing",
+    author="Malcolm Ramsay",
+    author_email="malramsay64@gmail.com",
+)
