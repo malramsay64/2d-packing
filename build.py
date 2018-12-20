@@ -49,6 +49,7 @@ class CMakeBuild(build_ext):
         cmake_args = [
             "-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=" + extdir,
             "-DPYTHON_EXECUTABLE=" + sys.executable,
+            "-Dpybind11_DIR=" + pybind11.get_include(),
         ]
 
         cfg = "Debug" if self.debug else "Release"
