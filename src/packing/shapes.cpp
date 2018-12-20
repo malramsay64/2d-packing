@@ -1,3 +1,4 @@
+#include "basis.h"
 #include "shapes.h"
 #include <cassert>
 #include <pybind11/stl.h>

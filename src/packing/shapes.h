@@ -1,4 +1,3 @@
-#include "basis.h"
 #include "math.h"
 #include <algorithm>
 #include <cmath>
@@ -11,6 +10,12 @@
 
 #ifndef SHAPES_H
 #define SHAPES_H
+
+// Forward declaration of Basis class
+class Basis;
+
+// Forward declaration of Site class
+class Site;
 
 struct Cell {
   Basis* x_len;
@@ -91,14 +96,10 @@ public:
   Basis* angle;
   bool flip_site = false;
 
-  Vect3 site_variables() const {
-    return Vect3(this->x->get_value(), this->y->get_value(), this->angle->get_value());
-  };
-  Vect2 get_position() const {
-    return Vect2(this->x->get_value(), this->y->get_value());
-  };
-  int get_flip_sign() const { return this->flip_site ? 1 : -1; };
-  int get_multiplicity() const { return this->wyckoff->multiplicity; };
+  Vect3 site_variables() const;
+  Vect2 get_position() const;
+  int get_flip_sign() const;
+  int get_multiplicity() const;
 };
 
 class ShapeInstance {

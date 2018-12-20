@@ -4,6 +4,7 @@
  *
  * Distributed under terms of the MIT license.
  */
+#include "basis.h"
 #include "math.h"
 #include "random.h"
 #include "shapes.h"

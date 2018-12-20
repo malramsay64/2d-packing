@@ -6,6 +6,7 @@
  */
 #include "math.h"
 #include "random.h"
+#include "shapes.h"
 #include <algorithm>
 #include <cmath>
 #include <pybind11/pybind11.h>
@@ -14,9 +15,6 @@
 
 #ifndef BASIS_H
 #define BASIS_H
-
-// Forward declaration of Site class
-class Site;
 
 class Basis {
 protected:
