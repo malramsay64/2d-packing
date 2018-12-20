@@ -113,7 +113,7 @@ Shape::Shape(const std::string& name, const std::vector<double>& radial_points)
 
 int Shape::resolution() const { return this->radial_points.size(); };
 double Shape::angular_step() const { return 2 * PI / this->resolution(); };
-double Shape::get_point(int index) const { return this->radial_points[index]; }
+double Shape::get_point(int index) const { return this->radial_points.at(index); }
 
 void Shape::plot(const std::string& filename) const {
   double angle;
