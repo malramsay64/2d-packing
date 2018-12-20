@@ -258,7 +258,7 @@ int initialize_structure_in_group(
   // Logging to console which can be turned off easily
   auto console = spdlog::stdout_color_mt("console");
 
-  int count_replicas = group.group_multiplicity();
+  int count_replicas = group_multiplicity(occupied_sites);
 
   // cell sides.
   double max_cell_size = 4 * shape.max_radius * count_replicas;
@@ -349,7 +349,7 @@ void uniform_best_packing_in_isopointal_group(
   std::vector<Basis> best_basis;
   std::vector<bool> best_flips;
 
-  size_t count_replicas = group.group_multiplicity();
+  size_t count_replicas = 0;
 
   double packing_fraction = -1;
   double packing_fraction_max = 0.0;

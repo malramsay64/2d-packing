@@ -4,12 +4,8 @@
  *
  * Distributed under terms of the MIT license.
  */
-
-#ifndef WALLPAPER_H
-#define WALLPAPER_H
-
+#include "math.h"
 #include "random.h"
-#include "globals.h"
 #include "shapes.h"
 #include <cmath>
 #include <spdlog/sinks/stdout_color_sinks.h>
@@ -17,10 +13,7 @@
 #include <string>
 #include <vector>
 
-inline bool is_close(float value, float expected, float rel_tol = 1e-8) {
-  return fabs(value - expected) < rel_tol * expected;
-}
-
-#define MAXNUMOCCSITES 3
+#ifndef WALLPAPER_H
+#define WALLPAPER_H
 
 #endif /* !WALLPAPER_H */

@@ -29,10 +29,10 @@ public:
   Basis(double value, double min_val, double max_val)
       : Basis(value, min_val, max_val, 1){};
 
-  double value_range() const { return this->max_val - this->min_val; };
-  double get_value() const { return this->value; };
+  double value_range() const;
+  double get_value() const;
   void set_value(double new_value);
-  void reset_value() { this->value = this->value_previous; };
+  void reset_value();
   double get_random_value(double kT) const;
 };
 
@@ -109,10 +109,7 @@ struct Cell {
   Basis* angle;
 
   Vect2 fractional_to_real(const Vect2&) const;
-  double area() const {
-    return this->x_len->get_value() * this->y_len->get_value() *
-           fabs(sin(this->angle->get_value()));
-  };
+  double area() const;
 };
 
 class Shape {
@@ -131,9 +128,9 @@ public:
   double max_radius;
   double shape_var = 0;
 
-  inline int resolution() const { return this->radial_points.size(); };
-  inline double angular_step() const { return 2 * PI / this->resolution(); };
-  inline double get_point(const int index) const { return this->radial_points[index]; }
+  int resolution() const;
+  double angular_step() const;
+  double get_point(int index) const;
 
   void plot(const std::string& filename) const;
   double area() const;
@@ -159,17 +156,8 @@ public:
   ImageType(Vect3 x_coeffs, Vect3 y_coeffs, double rotation_offset);
   Vect3 x_coeffs;
   Vect3 y_coeffs;
-  /* first index is the output coordinate,
-   second index is input coordinate (+1 is for the constant that is added)
-
-   for example, to work out the new values:
-   x_new = coord_coeffs[0][0]*x_old + coord_coeffs[0][1]*y_old +
-   coord_coeffs[0][2]; y_new = coord_coeffs[1][0]*x_old +
-   coord_coeffs[1][1]*y_old + coord_coeffs[1][2];
-  */
-  double rotation_offset; /*angles move clockwise*/
-  bool flipped; /* =1, when flipped using the x-axis as mirror, rotation_offset
-                   is then employed if mirror is at y-axis for example */
+  double rotation_offset;
+  bool flipped;
   enum mirror site_mirror;
 
   Vect2 real_to_fractional(const Vect3& real) const;
@@ -212,19 +200,13 @@ public:
   Site* site;
   ImageType* image;
 
-  bool operator==(const ShapeInstance& other) const {
-    return (
-        this->shape == other.shape && this->site == other.site &&
-        this->image == other.image);
-  };
+  bool operator==(const ShapeInstance& other) const;
 
-  Vect2 get_fractional_coordinates() const {
-    return this->image->real_to_fractional(*this->site);
-  }
-  Vect2 get_real_coordinates() const { return this->site->get_position(); };
-  double get_angle() const { return this->site->angle->get_value(); };
-  double get_rotational_offset() const { return this->image->rotation_offset; };
-  bool get_flipped() const { return this->image->flipped ^ this->site->flip_site; };
+  Vect2 get_fractional_coordinates() const;
+  Vect2 get_real_coordinates() const;
+  double get_angle() const;
+  double get_rotational_offset() const;
+  bool get_flipped() const;
   bool pair_clash(ShapeInstance& other) const;
 };
 
@@ -238,9 +220,9 @@ public:
   int num_symmetries = 0;
   std::vector<WyckoffType> wyckoffs;
   int num_wyckoffs;
-
-  size_t group_multiplicity() const;
 };
+
+size_t group_multiplicity(const std::vector<Site>& occupied_sites);
 
 std::string create_filename(
     const Shape& shape,

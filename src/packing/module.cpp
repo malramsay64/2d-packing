@@ -14,9 +14,7 @@ PYBIND11_MODULE(_packing, m) {
       Pybind11 test
       -------------
       )pbdoc";
-  m.def("fluke", &fluked, R"pbdoc(
-      Generate a random number
-      )pbdoc");
+  export_fluke(m);
 
 #ifdef VERSION_INFO
   m.attr("__version__") = VERSION_INFO;
