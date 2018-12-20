@@ -340,8 +340,8 @@ bool there_is_collision() { return true; }
 void uniform_best_packing_in_isopointal_group(
     Shape& shape,
     WallpaperGroup& group,
-    size_t num_cycles,
-    size_t max_steps,
+    std::size_t num_cycles,
+    std::size_t max_steps,
     double max_step_size,
     double kT_start = 0.1,
     double kT_finish = 5e-4) {
@@ -349,7 +349,7 @@ void uniform_best_packing_in_isopointal_group(
   std::vector<Basis> best_basis;
   std::vector<bool> best_flips;
 
-  size_t count_replicas = 0;
+  std::size_t count_replicas = 0;
 
   double packing_fraction = -1;
   double packing_fraction_max = 0.0;
@@ -357,8 +357,8 @@ void uniform_best_packing_in_isopointal_group(
   double kT_ratio = std::pow(kT_finish / kT_start, 1.0 / max_steps);
 
   /* Each cycle starts with a new random initialisation */
-  size_t monte_carlo_steps = 0;
-  size_t rejections = 0;
+  std::size_t monte_carlo_steps = 0;
+  std::size_t rejections = 0;
   double kT = kT_start;
 
   double packing_fraction_prev;
@@ -378,7 +378,7 @@ void uniform_best_packing_in_isopointal_group(
   while (monte_carlo_steps < max_steps) {
     kT *= kT_ratio;
 
-    size_t vary_index = rand() % basis.size();
+    std::size_t vary_index = rand() % basis.size();
     Basis& basis_current = basis[vary_index];
 
     /* Occasionally allow flips */

@@ -222,7 +222,7 @@ public:
   int num_wyckoffs;
 };
 
-size_t group_multiplicity(const std::vector<Site>& occupied_sites);
+std::size_t group_multiplicity(const std::vector<Site>& occupied_sites);
 
 std::string create_filename(
     const Shape& shape,
