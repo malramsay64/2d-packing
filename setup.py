@@ -13,27 +13,19 @@ import subprocess
 import sys
 from distutils.version import LooseVersion
 
-import pybind11
-from setuptools import Extension, setup, find_packages
+from setuptools import Extension, find_packages, setup
 from setuptools.command.build_ext import build_ext
+
 
 def get_version():
     g = {}
     exec(open("src/pypacking/version.py").read(), g)
     return g["__version__"]
 
-install_requires = [
-    "numpy~=1.14",
-    "click~=7.0",
-    "attrs",
-    "pybind11~=2.2",
-]
 
-dev_requires = [
-    "pytest~=3.9",
-    "black==18.9b0",
-    "pylint",
-]
+install_requires = ["numpy~=1.14", "click~=7.0", "attrs"]
+
+dev_requires = ["pytest~=3.9", "black==18.9b0", "pylint"]
 
 
 class CMakeExtension(Extension):
@@ -89,17 +81,18 @@ class CMakeBuild(build_ext):
             ["cmake", "--build", "."] + build_args, cwd=self.build_temp
         )
 
+
 setup(
     name="pypacking",
     version=get_version(),
     python_requires=">=3.6",
-    install_requires = install_requires,
+    install_requires=install_requires,
     packages=find_packages("src"),
-    package_dir= {"": "src"},
+    package_dir={"": "src"},
     include_package_data=True,
     extras_require={"dev": dev_requires},
     ext_modules=[CMakeExtension("_packing")],
-    cmdclass= {"build_ext": CMakeBuild},
+    cmdclass={"build_ext": CMakeBuild},
     url="https://github.com/malramsay64/2d-packing",
     author="Malcolm Ramsay",
     author_email="malramsay64@gmail.com",
