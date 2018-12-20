@@ -6,9 +6,8 @@ project(packing)
 find_package(Python3 COMPONENTS Interpreter REQUIRED)
 
 include_directories(src/spdlog/include)
-include_directories(src/pybind11/include)
 
-find_package(pybind11 REQUIRED)
+add_subdirectory(src/pybind11)
 
 set(SOURCES src/packing/module.cpp
             src/packing/math.cpp
