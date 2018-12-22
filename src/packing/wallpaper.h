@@ -4,14 +4,16 @@
  *
  * Distributed under terms of the MIT license.
  */
+#include <cmath>
+#include <string>
+#include <vector>
+
+#include <spdlog/spdlog.h>
+
 #include "basis.h"
 #include "math.h"
 #include "random.h"
 #include "shapes.h"
-#include <cmath>
-#include <spdlog/spdlog.h>
-#include <string>
-#include <vector>
 
 #ifndef WALLPAPER_H
 #define WALLPAPER_H
