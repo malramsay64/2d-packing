@@ -25,7 +25,7 @@ def get_version():
 
 install_requires = ["numpy~=1.14", "click~=7.0", "attrs"]
 
-dev_requires = ["pytest~=3.9", "black==18.9b0", "pylint"]
+dev_requires = ["pytest~=3.9", "black==18.9b0", "pylint", "hypothesis"]
 
 
 class CMakeExtension(Extension):
