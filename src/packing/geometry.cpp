@@ -42,10 +42,10 @@ bool segments_cross(
 
   // Find the four orientations needed for general and
   // special cases
-  int o1 = triplet_orientation(A1, B1, A2);
-  int o2 = triplet_orientation(A1, B1, B2);
-  int o3 = triplet_orientation(A2, B2, A1);
-  int o4 = triplet_orientation(A2, B2, B1);
+  const int o1{triplet_orientation(A1, B1, A2)};
+  const int o2{triplet_orientation(A1, B1, B2)};
+  const int o3{triplet_orientation(A2, B2, A1)};
+  const int o4{triplet_orientation(A2, B2, B1)};
 
   // General case
   if (o1 != o2 && o3 != o4)

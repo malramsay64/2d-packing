@@ -14,11 +14,13 @@
 
 namespace py = pybind11;
 
-double positive_modulo(double i, double n) { return std::fmod(std::fmod(i, n) + n, n); }
+double positive_modulo(const double i, const double n) {
+  return std::fmod(std::fmod(i, n) + n, n);
+}
 
-int positive_modulo(int i, int n) { return ((i % n) + n) % n; }
+int positive_modulo(const int i, const int n) { return ((i % n) + n) % n; }
 
-template <typename T> int sign(const T val) { return (T(0) < val) - (val < T(0)); }
+int sign(double val) { return (double{0} < val) - (val < double{0}); }
 
 Vect2 Vect2::operator+(const Vect2& other) const {
   return Vect2(this->x + other.x, this->y + other.y);
@@ -43,24 +45,24 @@ Vect2 Vect2::operator%(const double other) const {
 }
 
 double Vect2::norm_sq() const { return this->x * this->x + this->y * this->y; }
-double Vect2::norm() const { return sqrt(this->norm_sq()); }
+double Vect2::norm() const { return std::sqrt(this->norm_sq()); }
 
-Vect2& positive_modulo(Vect2& v, double modulo) {
+Vect2& positive_modulo(Vect2& v, const double modulo) {
   v.x = positive_modulo(v.x, modulo);
   v.y = positive_modulo(v.y, modulo);
   return v;
 }
 
 double temperature_distribution(
-    double old_val,
-    double new_val,
-    double kT,
-    std::size_t replicas) {
+    const double old_val,
+    const double new_val,
+    const double kT,
+    const std::size_t replicas) {
   return std::exp(
-      ((1.0 / old_val - 1.0 / new_val) / kT) + replicas * std::log(old_val / new_val));
+      ((1 / old_val - 1 / new_val) / kT) + replicas * std::log(old_val / new_val));
 }
 
-bool is_close(float value, float expected, float rel_tol) {
+bool is_close(const float value, const float expected, const float rel_tol) {
   return fabs(value - expected) < rel_tol * expected;
 }
 

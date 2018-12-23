@@ -98,7 +98,7 @@ public:
 
 class Site {
 public:
-  WyckoffType* wyckoff;
+  const WyckoffType* const wyckoff;
   Basis* x;
   Basis* y;
   Basis* angle;
@@ -114,9 +114,9 @@ class ShapeInstance {
 public:
   ShapeInstance(const Shape& shape, Site& site, ImageType& image)
       : shape(&shape), site(&site), image(&image){};
-  const Shape* shape;
-  Site* site;
-  ImageType* image;
+  const Shape* const shape;
+  Site* const site;
+  ImageType* const image;
 
   bool operator==(const ShapeInstance& other) const;
 
@@ -133,10 +133,10 @@ public:
 class WallpaperGroup {
 public:
   WallpaperGroup(std::string label, std::vector<WyckoffType> wyckoffs);
-  std::string label;
-  bool a_b_equal = false;
-  bool hexagonal = false;
-  bool rectangular = false;
+  const std::string label;
+  const bool a_b_equal = false;
+  const bool hexagonal = false;
+  const bool rectangular = false;
   int num_symmetries = 0;
   std::vector<WyckoffType> wyckoffs;
   int num_wyckoffs;

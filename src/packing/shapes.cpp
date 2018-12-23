@@ -18,12 +18,13 @@
 
 #include "basis.h"
 #include "geometry.h"
+#include "math.h"
 
 namespace py = pybind11;
 
 double Cell::area() const {
   return this->x_len->get_value() * this->y_len->get_value() *
-         fabs(sin(this->angle->get_value()));
+         std::fabs(std::sin(this->angle->get_value()));
 };
 
 Shape::Shape(
@@ -43,16 +44,14 @@ Shape::Shape(const std::string& name, const std::vector<double>& radial_points)
 
 int Shape::resolution() const { return this->radial_points.size(); };
 double Shape::angular_step() const { return 2 * PI / this->resolution(); };
-double Shape::get_point(int index) const { return this->radial_points.at(index); }
+double Shape::get_point(const int index) const { return this->radial_points.at(index); }
 
 void Shape::plot(const std::string& filename) const {
-  double angle;
-
   std::ofstream outfile;
   outfile.open(filename, std::ios::out);
 
   for (std::size_t i = 0; i < this->radial_points.size(); ++i) {
-    angle = this->angular_step() * i;
+    double angle{this->angular_step() * i};
     outfile << std::fixed << std::setprecision(12)
             << this->radial_points[i] * cos(angle) << " "
             << this->radial_points[i] * sin(angle) << std::endl;
@@ -65,8 +64,8 @@ void Shape::plot(const std::string& filename) const {
  * In this case the angle is the same for every triangle so is precomputed above.
  */
 double Shape::area() const {
-  double areasum = 0.0;
-  double angle = std::sin(this->angular_step());
+  double areasum{0.0};
+  const double angle{std::sin(this->angular_step())};
   for (std::size_t index = 0; index < this->radial_points.size(); ++index) {
     std::size_t next_index = (index + 1) % this->radial_points.size();
     areasum +=
@@ -75,22 +74,23 @@ double Shape::area() const {
   return areasum;
 }
 
-std::vector<Vect2>
-Shape::generate_position_cache(const Vect2& position, double angle_to_shape) const {
-  int resolution = this->resolution();
+std::vector<Vect2> Shape::generate_position_cache(
+    const Vect2& position,
+    const double angle_to_shape) const {
+  const int resolution{this->resolution()};
 
   std::vector<Vect2> position_cache;
   // Reserve the expected size of the vector on initialisation
   position_cache.reserve(resolution / 2 + 1);
 
-  double angular_step = 2.0 * PI / resolution;
+  const double angular_step = M_2_PI / resolution;
   int angle_int = static_cast<int>(std::round(angle_to_shape / angular_step));
   // Flipping reverses the direction of the points
 
   for (int index = -resolution / 4; index <= (resolution / 4); index++) {
-    int compare_index = angle_int + index;
+    int compare_index{angle_int + index};
     // Change base to angle between shapes
-    double theta = fabs(compare_index * angular_step - angle_to_shape);
+    double theta{fabs(compare_index * angular_step - angle_to_shape)};
     position_cache.push_back(Vect2(
         this->get_point(compare_index) * cos(theta),
         this->get_point(compare_index) * sin(theta)));
@@ -99,20 +99,21 @@ Shape::generate_position_cache(const Vect2& position, double angle_to_shape) con
 }
 
 std::vector<Vect2> Shape::generate_position_cache_full(const Vect2& position) const {
-  int resolution = this->resolution();
+  const int resolution{this->resolution()};
 
   std::vector<Vect2> position_cache;
   // Reserve the expected size of the vector on initialisation
   position_cache.reserve(resolution / 2 + 1);
 
-  double angular_step = 2.0 * PI / resolution;
+  const double angular_step{M_2_PI / resolution};
   // Flipping reverses the direction of the points
 
   for (int index = -resolution / 2; index <= (resolution / 2); index++) {
     // Change base to angle between shapes
-    double theta = fabs(index * angular_step);
+    double theta{std::fabs(index * angular_step)};
     position_cache.push_back(Vect2(
-        this->get_point(index) * cos(theta), this->get_point(index) * sin(theta)));
+        this->get_point(index) * std::cos(theta),
+        this->get_point(index) * std::sin(theta)));
   }
   return position_cache;
 }
@@ -148,10 +149,13 @@ Vect2 ImageType::real_to_fractional(const Site& site) const {
 Vect3 Site::site_variables() const {
   return Vect3(this->x->get_value(), this->y->get_value(), this->angle->get_value());
 };
+
 Vect2 Site::get_position() const {
   return Vect2(this->x->get_value(), this->y->get_value());
 };
+
 int Site::get_flip_sign() const { return this->flip_site ? 1 : -1; };
+
 int Site::get_multiplicity() const { return this->wyckoff->multiplicity; };
 
 bool ShapeInstance::operator==(const ShapeInstance& other) const {
@@ -178,9 +182,9 @@ std::pair<double, double> ShapeInstance::compute_incline(
     const ShapeInstance& other,
     const Vect2& position_other) const {
 
-  const Vect2& position_this = this->get_real_coordinates();
-  double central_dist = (position_this - position_other).norm();
-  double a_to_b_incline = acos((position_other.x - position_this.x) / central_dist);
+  const Vect2& position_this{this->get_real_coordinates()};
+  const double central_dist{(position_this - position_other).norm()};
+  double a_to_b_incline{acos((position_other.x - position_this.x) / central_dist)};
 
   if (std::isnan(a_to_b_incline)) {
     if (is_close(position_other.x - position_this.x, central_dist, 1e-8)) {
@@ -190,18 +194,18 @@ std::pair<double, double> ShapeInstance::compute_incline(
     }
   }
   if (position_other.x < position_this.x) {
-    a_to_b_incline = 2.0 * M_PI - a_to_b_incline;
+    a_to_b_incline = M_2_PI - a_to_b_incline;
   }
 
   // Set reverse incline
-  double b_to_a_incline = a_to_b_incline + M_PI;
+  double b_to_a_incline{a_to_b_incline + M_PI};
 
   // Deal with the flipping of shapes
   if (this->get_flipped()) {
-    a_to_b_incline = 2 * M_PI - a_to_b_incline;
+    a_to_b_incline = M_2_PI - a_to_b_incline;
   }
   if (other.get_flipped()) {
-    b_to_a_incline = 2 * M_PI - b_to_a_incline;
+    b_to_a_incline = M_2_PI - b_to_a_incline;
   }
 
   /* now add in the rotation due to the orientation parameters */
@@ -214,8 +218,8 @@ std::pair<double, double> ShapeInstance::compute_incline(
   a_to_b_incline += std::pow(-1, this->get_flipped()) * this->get_rotational_offset();
   b_to_a_incline += std::pow(-1, other.get_flipped()) * other.get_rotational_offset();
 
-  a_to_b_incline = positive_modulo(a_to_b_incline, 2.0 * PI);
-  b_to_a_incline = positive_modulo(b_to_a_incline, 2.0 * PI);
+  a_to_b_incline = positive_modulo(a_to_b_incline, M_2_PI);
+  b_to_a_incline = positive_modulo(b_to_a_incline, M_2_PI);
   return std::pair<double, double>{a_to_b_incline, b_to_a_incline};
 }
 
@@ -223,8 +227,8 @@ bool ShapeInstance::intersects_with(
     const ShapeInstance& other,
     const Vect2& position_other) const {
 
-  const Vect2& position_this = this->get_real_coordinates();
-  double central_dist = (position_this - position_other).norm();
+  const Vect2& position_this{this->get_real_coordinates()};
+  const double central_dist{(position_this - position_other).norm()};
   /* No clash when further apart than the maximum shape radii measures */
   if (central_dist > this->shape->max_radius + other.shape->max_radius) {
     return false;

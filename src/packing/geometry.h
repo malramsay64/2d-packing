@@ -5,8 +5,9 @@
  * Distributed under terms of the MIT license.
  */
 
-#include "math.h"
 #include <pybind11/pybind11.h>
+
+#include "math.h"
 
 #ifndef GEOMETRY_H
 #define GEOMETRY_H

@@ -12,18 +12,18 @@
 
 const double PI = M_PI;
 
-double positive_modulo(double i, double n);
+double positive_modulo(const double i, const double n);
 
-int positive_modulo(int i, int n);
+int positive_modulo(const int i, const int n);
 
-bool is_close(float value, float expected, float rel_tol = 1e-8);
+bool is_close(const float value, const float expected, const float rel_tol = 1e-8);
 
-template <typename T> int sign(const T val);
+int sign(double val);
 
 struct Vect2 {
   double x;
   double y;
-  Vect2(double x, double y) : x(x), y(y){};
+  Vect2(const double x, const double y) : x(x), y(y){};
   Vect2() : x(0), y(0){};
 
   Vect2 operator+(const Vect2& other) const;
@@ -38,21 +38,21 @@ struct Vect2 {
   double norm() const;
 };
 
-Vect2& positive_modulo(Vect2& v, double modulo);
+Vect2& positive_modulo(Vect2& v, const double modulo);
 
 struct Vect3 {
   double x;
   double y;
   double z;
 
-  Vect3(double x, double y, double z) : x(x), y(y), z(z){};
+  Vect3(const double x, const double y, const double z) : x(x), y(y), z(z){};
 };
 
 double temperature_distribution(
-    double old_val,
-    double new_val,
-    double kT,
-    std::size_t replicas);
+    const double old_val,
+    const double new_val,
+    const double kT,
+    const std::size_t replicas);
 
 void export_Vect2(pybind11::module& m);
 

@@ -28,15 +28,15 @@ double Basis::get_value() const { return this->value; };
 
 void Basis::reset_value() { this->value = this->value_previous; };
 
-double Basis::get_random_value(double kT) const {
+double Basis::get_random_value(const double kT) const {
   return this->value + this->step_size * this->value_range() * (fluke() - 0.5);
 }
 
-double CellLengthBasis::get_random_value(double kT) const {
+double CellLengthBasis::get_random_value(const double kT) const {
   return this->get_value() + (1.0 + std::min(3.0 * kT, 0.1) * (fluke() - 0.5));
 }
 
-double CellAngleBasis::get_random_value(double kT) const {
+double CellAngleBasis::get_random_value(const double kT) const {
   return this->value + this->step_size * this->value_range() * (fluke() - 0.5);
 }
 
@@ -70,7 +70,7 @@ void CellAngleBasis::reset_cell_lengths() {
   this->cell_y_len->reset_value();
 };
 
-double MirrorBasis::get_random_value(double kT) const {
+double MirrorBasis::get_random_value(const double kT) const {
   if ((this->mirrors % 2 == 0) && (fluke() < 0.5)) {
     /* turn it 90 degrees to switch the x and y mirror planes */
     if (this->value < M_PI * 3.0 / 4.0) {
@@ -82,7 +82,7 @@ double MirrorBasis::get_random_value(double kT) const {
   return positive_modulo(this->value + PI, 2 * PI);
 }
 
-double FlipBasis::get_random_value(double kT) const {
+double FlipBasis::get_random_value(const double kT) const {
   return rand() % occupied_sites->size();
 }
 

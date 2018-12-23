@@ -58,9 +58,9 @@ bool clash_polygon(
 }
 
 double calculate_packing_fraction(
-    Shape& shape,
-    Cell& cell,
-    std::vector<Site>& occupied_sites) {
+    const Shape& shape,
+    const Cell& cell,
+    const std::vector<Site>& occupied_sites) {
 
   auto console = spdlog::stdout_color_mt("console");
 
@@ -89,7 +89,7 @@ int initialize_structure_in_group(
     Cell& cell,
     std::vector<Site>& occupied_sites,
     std::vector<Basis>& basis,
-    double step_size) {
+    const double step_size) {
 
   // Logging to console which can be turned off easily
   auto console = spdlog::stdout_color_mt("console");
@@ -97,7 +97,7 @@ int initialize_structure_in_group(
   int count_replicas = group_multiplicity(occupied_sites);
 
   // cell sides.
-  double max_cell_size = 4 * shape.max_radius * count_replicas;
+  const double max_cell_size{4 * shape.max_radius * count_replicas};
   if (group.a_b_equal) {
     console->debug("Cell sides equal");
     basis.push_back(CellLengthBasis(max_cell_size, 0.1, max_cell_size, step_size));
@@ -115,16 +115,16 @@ int initialize_structure_in_group(
   // cell angles.
   if (group.hexagonal) {
     console->debug("Hexagonal group");
-    cell.angle = new FixedBasis(PI / 3);
+    cell.angle = new FixedBasis(M_PI / 3);
   } else if (group.rectangular) {
     console->debug("Rectangular group");
-    cell.angle = new FixedBasis(PI / 2);
+    cell.angle = new FixedBasis(M_PI_2);
   } else {
     console->debug("Tilted group");
     basis.push_back(CellAngleBasis(
-        PI / 4 * fluke() * PI / 2,
-        PI / 4,
-        3 * PI / 4,
+        M_PI_4 + fluke() * M_PI_2,
+        M_PI_4,
+        3 * M_PI_4,
         step_size,
         cell.x_len,
         cell.y_len));
@@ -154,13 +154,13 @@ int initialize_structure_in_group(
     /* This could also be done within the Wyckoff position SITEROTATION
      * parameter?... */
     if (site.wyckoff->site_mirrors) {
-      int mirrors = site.wyckoff->image[0].site_mirror;
-      double value = M_PI / 180 * mirrors;
+      const int mirrors{site.wyckoff->image[0].site_mirror};
+      const double value{M_PI / 180 * mirrors};
       basis.push_back(MirrorBasis(value, 0, 2 * PI, mirrors));
       site.angle = &basis.back();
     } else {
-      double value = fluke() * 2.0 * M_PI;
-      basis.push_back(Basis(value, 0, 2 * PI, step_size));
+      const double value{fluke() * M_2_PI};
+      basis.push_back(Basis(value, 0, M_2_PI, step_size));
       site.angle = &basis.back();
       console->debug("site offset-angle is variable %f\n", site.angle->get_value());
     }
@@ -176,26 +176,26 @@ bool there_is_collision() { return true; }
 void uniform_best_packing_in_isopointal_group(
     Shape& shape,
     WallpaperGroup& group,
-    std::size_t num_cycles,
-    std::size_t max_steps,
-    double max_step_size,
-    double kT_start = 0.1,
-    double kT_finish = 5e-4) {
+    const std::size_t num_cycles,
+    const std::size_t max_steps,
+    const double max_step_size,
+    const double kT_start = 0.1,
+    const double kT_finish = 5e-4) {
   auto console = spdlog::stdout_color_mt("console");
   std::vector<Basis> best_basis;
   std::vector<bool> best_flips;
 
-  std::size_t count_replicas = 0;
+  std::size_t count_replicas{0};
 
-  double packing_fraction = -1;
-  double packing_fraction_max = 0.0;
+  double packing_fraction{-1};
+  double packing_fraction_max{0};
 
-  double kT_ratio = std::pow(kT_finish / kT_start, 1.0 / max_steps);
+  const double kT_ratio{std::pow(kT_finish / kT_start, 1.0 / max_steps)};
 
   /* Each cycle starts with a new random initialisation */
-  std::size_t monte_carlo_steps = 0;
-  std::size_t rejections = 0;
-  double kT = kT_start;
+  std::size_t monte_carlo_steps{0};
+  std::size_t rejections{0};
+  double kT{kT_start};
 
   double packing_fraction_prev;
 
@@ -214,17 +214,17 @@ void uniform_best_packing_in_isopointal_group(
   while (monte_carlo_steps < max_steps) {
     kT *= kT_ratio;
 
-    std::size_t vary_index = rand() % basis.size();
+    std::size_t vary_index{rand() % basis.size()};
     Basis& basis_current = basis[vary_index];
 
     /* Occasionally allow flips */
     if (monte_carlo_steps % 100) {
-      double flip_index = flip_basis.get_random_value(kT);
+      const double flip_index{flip_basis.get_random_value(kT)};
       flip_basis.set_value(flip_index);
     }
 
     packing_fraction_prev = packing_fraction;
-    double new_value = basis_current.get_random_value(kT);
+    const double new_value{basis_current.get_random_value(kT)};
     basis_current.set_value(new_value);
 
     if (there_is_collision()) {
@@ -284,7 +284,7 @@ void uniform_best_packing_in_isopointal_group(
 char compute_chiral_state(const std::vector<Site>& occupied_sites) {
   int chiralsum = 0;
   int totalsum = 0;
-  for (auto site : occupied_sites) {
+  for (const Site& site : occupied_sites) {
     chiralsum += site.get_flip_sign() * site.get_multiplicity();
     totalsum += site.get_multiplicity();
   }

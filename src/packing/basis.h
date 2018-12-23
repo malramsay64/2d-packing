@@ -22,30 +22,38 @@ protected:
   double value;
 
 public:
-  double min_val;
-  double max_val;
-  double step_size = 1;
+  const double min_val;
+  const double max_val;
+  const double step_size = 1;
 
-  Basis(double value, double min_val, double max_val, double step_size)
+  Basis(
+      const double value,
+      const double min_val,
+      const double max_val,
+      const double step_size)
       : value(value), min_val(min_val), max_val(max_val), step_size(step_size){};
-  Basis(double value, double min_val, double max_val)
+  Basis(const double value, const double min_val, const double max_val)
       : Basis(value, min_val, max_val, 1){};
 
   double value_range() const;
   double get_value() const;
   void set_value(double new_value);
   void reset_value();
-  double get_random_value(double kT) const;
+  double get_random_value(const double kT) const;
 };
 
 class CellLengthBasis : public Basis {
 public:
-  double step_size;
+  const double step_size;
 
-  CellLengthBasis(double value, double min_val, double max_val, double step_size)
+  CellLengthBasis(
+      const double value,
+      const double min_val,
+      const double max_val,
+      const double step_size)
       : Basis(value, min_val, max_val), step_size(step_size){};
 
-  double get_random_value(double kT) const;
+  double get_random_value(const double kT) const;
 };
 
 class CellAngleBasis : public Basis {
@@ -54,28 +62,28 @@ private:
   void reset_cell_lengths();
 
 public:
-  double step_size;
-  Basis* cell_x_len;
-  Basis* cell_y_len;
+  const double step_size;
+  Basis* const cell_x_len;
+  Basis* const cell_y_len;
 
   CellAngleBasis(
-      double value,
-      double min_val,
-      double max_val,
-      double step_size,
-      Basis* cell_x_len,
-      Basis* cell_y_len)
+      const double value,
+      const double min_val,
+      const double max_val,
+      const double step_size,
+      Basis* const cell_x_len,
+      Basis* const cell_y_len)
       : Basis(value, min_val, max_val), step_size(step_size), cell_x_len(cell_x_len),
         cell_y_len(cell_y_len){};
 
   void set_value(double new_value);
   void reset_value();
-  double get_random_value(double kT) const;
+  double get_random_value(const double kT) const;
 };
 
 class FixedBasis : public Basis {
 public:
-  FixedBasis(double value) : Basis(value, value, value){};
+  FixedBasis(const double value) : Basis(value, value, value){};
 
   void set_value(double new_value){};
   void reset_value(){};
@@ -83,24 +91,28 @@ public:
 
 class MirrorBasis : public Basis {
 public:
-  int mirrors;
+  const int mirrors;
 
-  MirrorBasis(double value, double min_val, double max_val, int mirrors)
+  MirrorBasis(
+      const double value,
+      const double min_val,
+      const double max_val,
+      const int mirrors)
       : Basis(value, min_val, max_val), mirrors(mirrors){};
 
-  double get_random_value(double kT) const;
+  double get_random_value(const double kT) const;
 };
 
 class FlipBasis : public Basis {
 private:
-  std::vector<Site>* occupied_sites;
+  std::vector<Site>* const occupied_sites;
   int value_previous;
 
 public:
-  FlipBasis(std::vector<Site>* occupied_sites)
+  FlipBasis(std::vector<Site>* const occupied_sites)
       : Basis(0, 0, occupied_sites->size()), occupied_sites(occupied_sites){};
 
-  double get_random_value(double kT) const;
+  double get_random_value(const double kT) const;
   void set_value(double new_value);
   void reset_value();
 };
