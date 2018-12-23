@@ -183,7 +183,7 @@ std::pair<double, double> ShapeInstance::compute_incline(
   double a_to_b_incline = acos((position_other.x - position_this.x) / central_dist);
 
   if (std::isnan(a_to_b_incline)) {
-    if (is_close(std::pow(position_other.x - position_this.x, 2), central_dist, 1e-8)) {
+    if (is_close(position_other.x - position_this.x, central_dist, 1e-8)) {
       a_to_b_incline = 0.0;
     } else if (is_close(position_other.x - position_this.x, -central_dist, 1e-8)) {
       a_to_b_incline = M_PI;
