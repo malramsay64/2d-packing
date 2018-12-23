@@ -4,18 +4,19 @@
  *
  * Distributed under terms of the MIT license.
  */
-#include <cmath>
-#include <cstddef>
 
 #ifndef MATH_H
 #define MATH_H
 
-const double PI = std::atan(1.0) * 4;
+const double PI = M_PI;
 
 double positive_modulo(double i, double n);
+
 int positive_modulo(int i, int n);
 
-template <typename T> int sign(T val);
+bool is_close(float value, float expected, float rel_tol = 1e-8);
+
+template <typename T> int sign(const T val);
 
 struct Vect2 {
   double x;
@@ -28,6 +29,8 @@ struct Vect2 {
   Vect2 operator*(const Vect2& other) const;
   Vect2 operator*(const float other) const;
   Vect2 operator==(const Vect2& other) const;
+  Vect2 operator%(const Vect2& other) const;
+  Vect2 operator%(const double other) const;
 
   double norm_sq() const;
   double norm() const;
@@ -48,7 +51,5 @@ double temperature_distribution(
     double new_val,
     double kT,
     std::size_t replicas);
-
-bool is_close(float value, float expected, float rel_tol = 1e-8);
 
 #endif /* !MATH_H */
