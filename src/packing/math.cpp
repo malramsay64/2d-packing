@@ -74,6 +74,5 @@ void export_Vect2(py::module& m) {
       .def(py::self + py::self)
       .def(py::self - py::self)
       .def(py::self * py::self)
-      .def(py::self * float())
-      .def(py::self == py::self);
+      .def(py::self * float());
 }

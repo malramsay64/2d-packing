@@ -10,6 +10,8 @@
 #include <algorithm>
 #include <cmath>
 
+namespace py = pybind11;
+
 // To find orientation of ordered triplet (a, b, c).
 // The function returns following values
 // 0 --> a, b and c are colinear
@@ -67,4 +69,21 @@ bool segments_cross(
     return true;
 
   return false; // Doesn't fall in any of the above cases
+}
+
+void export_geometry(py::module& m) {
+  m.def(
+      "triplet_orientation",
+      &triplet_orientation,
+      py::arg("a"),
+      py::arg("b"),
+      py::arg("c"));
+  m.def("on_segment", &on_segment, py::arg("a"), py::arg("b"), py::arg("c"));
+  m.def(
+      "segments_cross",
+      &segments_cross,
+      py::arg("A1"),
+      py::arg("A2"),
+      py::arg("B1"),
+      py::arg("B2"));
 }
