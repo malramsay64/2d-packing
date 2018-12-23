@@ -7,6 +7,7 @@
 
 #include <pybind11/pybind11.h>
 
+#include "math.h"
 #include "random.h"
 #include "shapes.h"
 
@@ -18,6 +19,7 @@ PYBIND11_MODULE(_packing, m) {
       )pbdoc";
   export_fluke(m);
   export_Shape(m);
+  export_Vect2(m);
 
 #ifdef VERSION_INFO
   m.attr("__version__") = VERSION_INFO;

@@ -5,6 +5,8 @@
  * Distributed under terms of the MIT license.
  */
 
+#include <pybind11/pybind11.h>
+
 #ifndef MATH_H
 #define MATH_H
 
@@ -51,5 +53,7 @@ double temperature_distribution(
     double new_val,
     double kT,
     std::size_t replicas);
+
+void export_Vect2(pybind11::module& m);
 
 #endif /* !MATH_H */
