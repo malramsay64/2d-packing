@@ -75,6 +75,48 @@ double Shape::area() const {
   return areasum;
 }
 
+std::vector<Vect2>
+Shape::generate_position_cache(const Vect2& position, double angle_to_shape) const {
+  int resolution = this->resolution();
+
+  std::vector<Vect2> position_cache;
+  // Reserve the expected size of the vector on initialisation
+  position_cache.reserve(resolution / 2 + 1);
+
+  double angular_step = 2.0 * PI / resolution;
+  int angle_int = static_cast<int>(std::round(angle_to_shape / angular_step));
+  // Flipping reverses the direction of the points
+
+  for (int index = -resolution / 4; index <= (resolution / 4); index++) {
+    int compare_index = angle_int + index;
+    // Change base to angle between shapes
+    double theta = fabs(compare_index * angular_step - angle_to_shape);
+    position_cache.push_back(Vect2(
+        this->get_point(compare_index) * cos(theta),
+        this->get_point(compare_index) * sin(theta)));
+  }
+  return position_cache;
+}
+
+std::vector<Vect2> Shape::generate_position_cache_full(const Vect2& position) const {
+  int resolution = this->resolution();
+
+  std::vector<Vect2> position_cache;
+  // Reserve the expected size of the vector on initialisation
+  position_cache.reserve(resolution / 2 + 1);
+
+  double angular_step = 2.0 * PI / resolution;
+  // Flipping reverses the direction of the points
+
+  for (int index = -resolution / 2; index <= (resolution / 2); index++) {
+    // Change base to angle between shapes
+    double theta = fabs(index * angular_step);
+    position_cache.push_back(Vect2(
+        this->get_point(index) * cos(theta), this->get_point(index) * sin(theta)));
+  }
+  return position_cache;
+}
+
 Vect2 Cell::fractional_to_real(const Vect2& fractional) const {
   Vect2 v(0, 0);
   v.x = fractional.x * this->x_len->get_value() +
@@ -132,25 +174,89 @@ bool ShapeInstance::get_flipped() const {
   return this->image->flipped ^ this->site->flip_site;
 };
 
-bool ShapeInstance::pair_clash(ShapeInstance& other) const {
-  // We can only compare shapes with the same resolution
-  if (this->shape->resolution() != other.shape->resolution()) {
-    throw "Resolutions of shapes are not equal";
+std::pair<double, double> ShapeInstance::compute_incline(
+    const ShapeInstance& other,
+    const Vect2& position_other) const {
+
+  const Vect2& position_this = this->get_real_coordinates();
+  double central_dist = (position_this - position_other).norm();
+  double a_to_b_incline = acos((position_other.x - position_this.x) / central_dist);
+
+  if (std::isnan(a_to_b_incline)) {
+    if (is_close(std::pow(position_other.x - position_this.x, 2), central_dist, 1e-8)) {
+      a_to_b_incline = 0.0;
+    } else if (is_close(position_other.x - position_this.x, -central_dist, 1e-8)) {
+      a_to_b_incline = M_PI;
+    }
+  }
+  if (position_other.x < position_this.x) {
+    a_to_b_incline = 2.0 * M_PI - a_to_b_incline;
   }
 
-  double max_contact_dist_squared =
-      std::pow(this->shape->max_radius + other.shape->max_radius, 2);
+  // Set reverse incline
+  double b_to_a_incline = a_to_b_incline + M_PI;
 
-  Vect2 coords_this = this->get_real_coordinates();
-  Vect2 coords_other = other.get_real_coordinates();
+  // Deal with the flipping of shapes
+  if (this->get_flipped()) {
+    a_to_b_incline = 2 * M_PI - a_to_b_incline;
+  }
+  if (other.get_flipped()) {
+    b_to_a_incline = 2 * M_PI - b_to_a_incline;
+  }
 
-  double central_dist_sqaured = (coords_this - coords_other).norm_sq();
-  // Where the distance is greater than both maximum radii, there is definitely no
-  // overlap, so we can avoid the expensive checks.
-  if (max_contact_dist_squared > central_dist_sqaured) {
+  /* now add in the rotation due to the orientation parameters */
+  /* This is unaffected by the flip states */
+  a_to_b_incline += this->get_angle();
+  b_to_a_incline += other.get_angle();
+
+  /* now add in the rotation due to the rotation of this image wrt the other
+   * images of the same wyckoff */
+  a_to_b_incline += std::pow(-1, this->get_flipped()) * this->get_rotational_offset();
+  b_to_a_incline += std::pow(-1, other.get_flipped()) * other.get_rotational_offset();
+
+  a_to_b_incline = positive_modulo(a_to_b_incline, 2.0 * PI);
+  b_to_a_incline = positive_modulo(b_to_a_incline, 2.0 * PI);
+  return std::pair<double, double>{a_to_b_incline, b_to_a_incline};
+}
+
+bool ShapeInstance::intersects_with(
+    const ShapeInstance& other,
+    const Vect2& position_other) const {
+
+  const Vect2& position_this = this->get_real_coordinates();
+  double central_dist = (position_this - position_other).norm();
+  /* No clash when further apart than the maximum shape radii measures */
+  if (central_dist > this->shape->max_radius + other.shape->max_radius) {
     return false;
   }
-  return true;
+
+  double angle_this_to_other, angle_other_to_this;
+  std::tie(angle_this_to_other, angle_other_to_this) =
+      this->compute_incline(other, position_other);
+
+  std::vector<Vect2> position_a_cache =
+      this->shape->generate_position_cache(position_this, angle_this_to_other);
+  std::vector<Vect2> position_b_cache =
+      other.shape->generate_position_cache(position_other, angle_other_to_this);
+
+  // The final element is the inital previous position providing a closed shape
+  // regardless of the number of points checked.
+  Vect2& position_a_prev = position_a_cache.back();
+  Vect2& position_b_prev = position_b_cache.back();
+  for (auto position_a = position_a_cache.begin(); position_a != position_a_cache.end();
+       ++position_a) {
+    for (auto position_b = position_b_cache.begin();
+         position_b != position_b_cache.end();
+         ++position_b) {
+      if (segments_cross(position_a_prev, *position_a, position_b_prev, *position_b)) {
+        return true;
+      }
+      // Update the previous point
+      position_a_prev = *position_a;
+      position_b_prev = *position_b;
+    }
+  }
+  return false;
 }
 
 std::size_t group_multiplicity(const std::vector<Site>& occupied_sites) {
@@ -173,6 +279,7 @@ std::string create_filename(
   return stream_filename.str();
 }
 
+// Export the shape class to python uisng pybind11
 void export_Shape(py::module& m) {
   py::class_<Shape> shape(m, "Shape");
   shape

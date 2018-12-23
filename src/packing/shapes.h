@@ -52,6 +52,10 @@ public:
 
   void plot(const std::string& filename) const;
   double area() const;
+
+  std::vector<Vect2>
+  generate_position_cache(const Vect2& position, double angle_to_shape) const;
+  std::vector<Vect2> generate_position_cache_full(const Vect2& position) const;
 };
 
 /*! \enum mirror
@@ -121,7 +125,9 @@ public:
   double get_angle() const;
   double get_rotational_offset() const;
   bool get_flipped() const;
-  bool pair_clash(ShapeInstance& other) const;
+  bool intersects_with(const ShapeInstance& other, const Vect2& coords_other) const;
+  std::pair<double, double>
+  compute_incline(const ShapeInstance& other, const Vect2& position_other) const;
 };
 
 class WallpaperGroup {
