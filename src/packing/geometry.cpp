@@ -20,24 +20,31 @@ namespace py = pybind11;
 int triplet_orientation(const Vect2& a, const Vect2& b, const Vect2& c) {
   // See https://www.geeksforgeeks.org/orientation-3-ordered-points/
   // for details of below formula.
-  Vect2 tmp = (b - a) * (c - b);
-  return sign(tmp.x - tmp.y);
+  return sign((b.y - a.y) * (c.x - b.x) - (b.x - a.x) * (c.y - b.y));
 }
 
 // Given three colinear points a, b, c, the function checks if
 // point b lies on line segment 'ac'
 bool on_segment(const Vect2& a, const Vect2& b, const Vect2& c) {
   if (b.x <= std::max(a.x, c.x) && b.x >= std::min(a.x, c.x) &&
-      b.y <= std::max(a.y, c.y) && b.y >= std::min(a.y, c.y))
+      b.y <= std::max(a.y, c.y) && b.y >= std::min(a.y, c.y)) {
     return true;
+  }
 
   return false;
 }
 
+/** Evaluate whether the line segment A1B1 crosses the line segment A2B2
+ * \param A1 The first point of the first line segment
+ * \param B1 The second point of the first line segment
+ * \param A2 The first point of the second line segment
+ * \param B2 The second point of the second line segment
+ * \returns bool indicating whether the line segments cross at some point.
+ */
 bool segments_cross(
     const Vect2& A1,
-    const Vect2& A2,
     const Vect2& B1,
+    const Vect2& A2,
     const Vect2& B2) {
 
   // Find the four orientations needed for general and
@@ -52,19 +59,19 @@ bool segments_cross(
     return true;
 
   // Special Cases
-  // A1, B1 and A2 are colinear and A2 lies on segment p1q1
+  // A1, B1 and A2 are colinear and A2 lies on segment A1B1
   if (o1 == 0 && on_segment(A1, A2, B1))
     return true;
 
-  // p1, q1 and q2 are colinear and q2 lies on segment p1q1
+  // p1, q1 and q2 are colinear and q2 lies on segment A1B1
   if (o2 == 0 && on_segment(A1, B2, B1))
     return true;
 
-  // p2, q2 and p1 are colinear and p1 lies on segment p2q2
+  // p2, q2 and p1 are colinear and p1 lies on segment A2B2
   if (o3 == 0 && on_segment(A2, A1, B2))
     return true;
 
-  // p2, q2 and q1 are colinear and q1 lies on segment p2q2
+  // p2, q2 and q1 are colinear and q1 lies on segment A2B2
   if (o4 == 0 && on_segment(A2, B1, B2))
     return true;
 
@@ -83,7 +90,7 @@ void export_geometry(py::module& m) {
       "segments_cross",
       &segments_cross,
       py::arg("A1"),
-      py::arg("A2"),
       py::arg("B1"),
+      py::arg("A2"),
       py::arg("B2"));
 }
