@@ -4,8 +4,6 @@
  *
  * Distributed under terms of the MIT license.
  */
-#include <algorithm>
-#include <cmath>
 
 #include "math.h"
 

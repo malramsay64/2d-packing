@@ -7,6 +7,10 @@
 
 #include "basis.h"
 
+#include <algorithm>
+#include <cmath>
+#include <string>
+
 namespace py = pybind11;
 
 double Basis::value_range() const { return this->max_val - this->min_val; };

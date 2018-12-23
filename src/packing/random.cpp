@@ -7,6 +7,8 @@
 
 #include "random.h"
 
+#include <random>
+
 std::mt19937_64 generator;
 std::uniform_real_distribution<double> distribution(0.0, 1.0);
 

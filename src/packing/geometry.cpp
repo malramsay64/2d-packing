@@ -7,6 +7,9 @@
 
 #include "geometry.h"
 
+#include <algorithm>
+#include <cmath>
+
 // To find orientation of ordered triplet (a, b, c).
 // The function returns following values
 // 0 --> a, b and c are colinear

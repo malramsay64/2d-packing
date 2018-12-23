@@ -1,167 +1,60 @@
+/*
+ * wallpaper.cpp
+ * Copyright (C) 2018 Malcolm Ramsay <malramsay64@gmail.com>
+ *
+ * Distributed under terms of the MIT license.
+ */
+
 #include "wallpaper.h"
+
+#include <cmath>
+#include <string>
+#include <vector>
+
 #include <spdlog/sinks/stdout_color_sinks.h>
+#include <spdlog/spdlog.h>
 
-
-std::vector<Vect2> generate_position_cache(
-    const Shape& shape,
-    const Vect2& position,
-    double angle_to_shape) {
-  int resolution = shape.resolution();
-
-  std::vector<Vect2> position_cache;
-  // Reserve the expected size of the vector on initialisation
-  position_cache.reserve(resolution / 2 + 1);
-
-  double angular_step = 2.0 * PI / resolution;
-  int angle_int = static_cast<int>(std::round(angle_to_shape / angular_step));
-  // Flipping reverses the direction of the points
-
-  for (int index = -resolution / 4; index <= (resolution / 4); index++) {
-    int compare_index = angle_int + index;
-    // Change base to angle between shapes
-    double theta = fabs(compare_index * angular_step - angle_to_shape);
-    position_cache.push_back(Vect2(
-        shape.get_point(compare_index) * cos(theta),
-        shape.get_point(compare_index) * sin(theta)));
-  }
-  return position_cache;
-}
-
-bool indirect_clash(
-    const Shape& shape_a,
-    const Shape& shape_b,
-    const Vect2& position_a,
-    const Vect2& position_b,
-    double angle_a_to_b,
-    double angle_b_to_a) {
-
-  std::vector<Vect2> position_a_cache =
-      generate_position_cache(shape_a, position_a, angle_a_to_b);
-  std::vector<Vect2> position_b_cache =
-      generate_position_cache(shape_b, position_b, angle_b_to_a);
-
-  // The final element is the inital previous position providing a closed shape
-  // regardless of the number of points checked.
-  Vect2& position_a_prev = position_a_cache.back();
-  Vect2& position_b_prev = position_b_cache.back();
-  for (auto position_a = position_a_cache.begin(); position_a != position_a_cache.end();
-       ++position_a) {
-    for (auto position_b = position_b_cache.begin();
-         position_b != position_b_cache.end();
-         ++position_b) {
-      if (segments_cross(position_a_prev, *position_a, position_b_prev, *position_b)) {
-        return true;
-      }
-      // Update the previous point
-      position_a_prev = *position_a;
-      position_b_prev = *position_b;
-    }
-  }
-  return false;
-}
-
-bool pair_clash(
-    const ShapeInstance& shape_a,
-    const ShapeInstance& shape_b,
-    const Vect2& coords_a,
-    const Vect2& coords_b) {
-
-  double mathtol = 1e-8;
-
-  double central_dist = (coords_a - coords_b).norm();
-
-  /* No clash when further apart than the maximum shape radii measures */
-  if (central_dist > shape_a.shape->max_radius + shape_b.shape->max_radius) {
-    return false;
-  }
-
-  /* we need a polygon overlap calculation */
-  /* first calculate the direct overlap */
-  double a_to_b_incline = acos((coords_b.x - coords_a.x) / central_dist);
-
-  if (std::isnan(a_to_b_incline)) {
-    if (is_close(std::pow(coords_b.x - coords_a.x, 2), central_dist, mathtol)) {
-      a_to_b_incline = 0.0;
-    } else if (is_close(coords_b.x - coords_a.x, -central_dist, mathtol)) {
-      a_to_b_incline = M_PI;
-    }
-  }
-  if (coords_b.x < coords_a.x) {
-    a_to_b_incline = 2.0 * M_PI - a_to_b_incline;
-  }
-
-  // Set reverse incline
-  double b_to_a_incline = a_to_b_incline + M_PI;
-
-  // Deal with the flipping of shapes
-  if (shape_a.get_flipped()) {
-    a_to_b_incline = 2 * M_PI - a_to_b_incline;
-  }
-  if (shape_b.get_flipped()) {
-    b_to_a_incline = 2 * M_PI - b_to_a_incline;
-  }
-
-  /* now add in the rotation due to the orientation parameters */
-  /* This is unaffected by the flip states */
-  a_to_b_incline += shape_a.get_angle();
-  b_to_a_incline += shape_b.get_angle();
-
-  /* now add in the rotation due to the rotation of this image wrt the other
-   * images of the same wyckoff */
-  a_to_b_incline +=
-      std::pow(-1, shape_a.get_flipped()) * shape_a.get_rotational_offset();
-  b_to_a_incline +=
-      std::pow(-1, shape_b.get_flipped()) * shape_b.get_rotational_offset();
-
-  a_to_b_incline = positive_modulo(a_to_b_incline, 2.0 * PI);
-  b_to_a_incline = positive_modulo(b_to_a_incline, 2.0 * PI);
-
-  return indirect_clash(
-      *shape_a.shape,
-      *shape_b.shape,
-      coords_a,
-      coords_b,
-      a_to_b_incline,
-      b_to_a_incline);
-}
+#include "basis.h"
+#include "geometry.h"
+#include "math.h"
+#include "random.h"
+#include "shapes.h"
 
 bool clash_polygon(
     const ShapeInstance& shape_a,
     const ShapeInstance& shape_b,
     const Cell& cell) {
 
-  Vect2 fcoords_a = shape_a.get_fractional_coordinates();
   Vect2 fcoords_b = shape_b.get_fractional_coordinates();
 
-  /* a is fixed, copies of b are made to test for the clash */
+  // a is fixed, copies of b are made to test for the clash
   Vect2 img_fcoords_b(0, 0);
+  Vect2 coords_a = cell.fractional_to_real(shape_a.get_fractional_coordinates());
 
-  /*
-   * The method of only looking at the 3x3 nearest cells fails for those with
-   * extreme angles, so is expanded to 5x5.
-   */
-  for (int cell_img_x = -2; cell_img_x <= 2; cell_img_x++) {
+  int shells = 1;
+  // For extreme angles, only the nearest shell fails, so have to look at 2 shells.
+  // The designator for 'extreme' angle is PI/4 or 45 degrees.
+  if (cell.angle->get_value() < M_PI_4) {
+    shells = 2;
+  } else if (M_2_PI - cell.angle->get_value() < M_PI_4) {
+    shells = 2;
+  }
 
-    img_fcoords_b.x = fcoords_b.x + cell_img_x;
-
-    for (int cell_img_y = -2; cell_img_y <= 2; cell_img_y++) {
-
+  for (int cell_img_x = -shells; cell_img_x <= shells; cell_img_x++) {
+    for (int cell_img_y = -shells; cell_img_y <= shells; cell_img_y++) {
       // Intersections with one's self are excluded
       if ((shape_a == shape_b) && (cell_img_x == 0) && (cell_img_y == 0)) {
         continue;
       }
-
-      img_fcoords_b.y = fcoords_b.y + cell_img_y;
-
-      Vect2 coords_a = cell.fractional_to_real(fcoords_a);
-      Vect2 coords_b = cell.fractional_to_real(img_fcoords_b);
-
-      if (pair_clash(shape_a, shape_b, coords_a, coords_b)) {
-        return 1;
+      //
+      Vect2 coords_b = cell.fractional_to_real(
+          Vect2(fcoords_b.x + cell_img_x, fcoords_b.y + cell_img_y));
+      if (shape_a.intersects_with(shape_b, coords_b)) {
+        return true;
       }
     }
   }
-  return 0;
+  return false;
 }
 
 double calculate_packing_fraction(

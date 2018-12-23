@@ -7,7 +7,11 @@
 
 #include "math.h"
 
+#include <cmath>
+#include <cstddef>
+
 double positive_modulo(double i, double n) { return std::fmod(std::fmod(i, n) + n, n); }
+
 int positive_modulo(int i, int n) { return ((i % n) + n) % n; }
 
 template <typename T> int sign(T val) { return (T(0) < val) - (val < T(0)); }

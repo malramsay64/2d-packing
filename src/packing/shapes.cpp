@@ -1,7 +1,23 @@
-#include "basis.h"
+/*
+ * shapes.cpp
+ * Copyright (C) 2018 Malcolm Ramsay <malramsay64@gmail.com>
+ *
+ * Distributed under terms of the MIT license.
+ */
+
 #include "shapes.h"
+
+#include <algorithm>
 #include <cassert>
+#include <cmath>
+#include <fstream>
+#include <iomanip>
+#include <iostream>
+
 #include <pybind11/stl.h>
+
+#include "basis.h"
+#include "geometry.h"
 
 namespace py = pybind11;
 

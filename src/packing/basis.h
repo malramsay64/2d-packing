@@ -4,14 +4,14 @@
  *
  * Distributed under terms of the MIT license.
  */
+
+#include <vector>
+
+#include <pybind11/pybind11.h>
+
 #include "math.h"
 #include "random.h"
 #include "shapes.h"
-#include <algorithm>
-#include <cmath>
-#include <pybind11/pybind11.h>
-#include <string>
-#include <vector>
 
 #ifndef BASIS_H
 #define BASIS_H

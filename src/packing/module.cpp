@@ -5,9 +5,10 @@
  * Distributed under terms of the MIT license.
  */
 
+#include <pybind11/pybind11.h>
+
 #include "random.h"
 #include "shapes.h"
-#include <pybind11/pybind11.h>
 
 PYBIND11_MODULE(_packing, m) {
   m.attr("__name__") = "pypacking._packing";
