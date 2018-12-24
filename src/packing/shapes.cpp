@@ -16,16 +16,10 @@
 
 #include <pybind11/stl.h>
 
-#include "basis.h"
 #include "geometry.h"
 #include "math.h"
 
 namespace py = pybind11;
-
-double Cell::area() const {
-  return this->x_len->get_value() * this->y_len->get_value() *
-         std::fabs(std::sin(this->angle->get_value()));
-};
 
 Shape::Shape(
     const std::string& name,
@@ -118,14 +112,6 @@ std::vector<Vect2> Shape::generate_position_cache_full(const Vect2& position) co
   return position_cache;
 }
 
-Vect2 Cell::fractional_to_real(const Vect2& fractional) const {
-  Vect2 v(0, 0);
-  v.x = fractional.x * this->x_len->get_value() +
-        fractional.y * this->y_len->get_value() * cos(this->angle->get_value());
-  v.y = fractional.y * this->y_len->get_value() * sin(this->angle->get_value());
-  return v;
-}
-
 Vect2 ImageType::real_to_fractional(const Vect3& real) const {
   /* converts site variables and wyckoff site coefficients into the location
    * of the actual wyckoff image in fractional coordinates */
@@ -145,18 +131,6 @@ Vect2 ImageType::real_to_fractional(const Site& site) const {
         this->y_coeffs.y * site.y->get_value() + this->y_coeffs.z;
   return positive_modulo(v, 1.);
 }
-
-Vect3 Site::site_variables() const {
-  return Vect3(this->x->get_value(), this->y->get_value(), this->angle->get_value());
-};
-
-Vect2 Site::get_position() const {
-  return Vect2(this->x->get_value(), this->y->get_value());
-};
-
-int Site::get_flip_sign() const { return this->flip_site ? 1 : -1; };
-
-int Site::get_multiplicity() const { return this->wyckoff->multiplicity; };
 
 bool ShapeInstance::operator==(const ShapeInstance& other) const {
   return (

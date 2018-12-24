@@ -10,25 +10,11 @@
 
 #include <pybind11/pybind11.h>
 
+#include "basis.h"
 #include "math.h"
 
 #ifndef SHAPES_H
 #define SHAPES_H
-
-// Forward declaration of Basis class
-class Basis;
-
-// Forward declaration of Site class
-class Site;
-
-struct Cell {
-  Basis* x_len;
-  Basis* y_len;
-  Basis* angle;
-
-  Vect2 fractional_to_real(const Vect2&) const;
-  double area() const;
-};
 
 class Shape {
 public:
@@ -94,20 +80,6 @@ public:
   int site_rotations;
   int site_mirrors;
   std::vector<ImageType> image;
-};
-
-class Site {
-public:
-  const WyckoffType* const wyckoff;
-  Basis* x;
-  Basis* y;
-  Basis* angle;
-  bool flip_site = false;
-
-  Vect3 site_variables() const;
-  Vect2 get_position() const;
-  int get_flip_sign() const;
-  int get_multiplicity() const;
 };
 
 class ShapeInstance {

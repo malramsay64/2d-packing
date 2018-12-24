@@ -11,6 +11,8 @@
 #include <cmath>
 #include <string>
 
+#include "shapes.h"
+
 namespace py = pybind11;
 
 double Basis::value_range() const { return this->max_val - this->min_val; };
@@ -30,6 +32,31 @@ void Basis::reset_value() { this->value = this->value_previous; };
 
 double Basis::get_random_value(const double kT) const {
   return this->value + this->step_size * this->value_range() * (fluke() - 0.5);
+}
+
+Vect3 Site::site_variables() const {
+  return Vect3(this->x->get_value(), this->y->get_value(), this->angle->get_value());
+};
+
+Vect2 Site::get_position() const {
+  return Vect2(this->x->get_value(), this->y->get_value());
+};
+
+int Site::get_flip_sign() const { return this->flip_site ? 1 : -1; };
+
+int Site::get_multiplicity() const { return this->wyckoff->multiplicity; };
+
+double Cell::area() const {
+  return this->x_len->get_value() * this->y_len->get_value() *
+         std::fabs(std::sin(this->angle->get_value()));
+};
+
+Vect2 Cell::fractional_to_real(const Vect2& fractional) const {
+  Vect2 v(0, 0);
+  v.x = fractional.x * this->x_len->get_value() +
+        fractional.y * this->y_len->get_value() * cos(this->angle->get_value());
+  v.y = fractional.y * this->y_len->get_value() * sin(this->angle->get_value());
+  return v;
 }
 
 double CellLengthBasis::get_random_value(const double kT) const {

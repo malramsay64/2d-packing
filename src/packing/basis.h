@@ -11,10 +11,12 @@
 
 #include "math.h"
 #include "random.h"
-#include "shapes.h"
 
 #ifndef BASIS_H
 #define BASIS_H
+
+// Forward declaration of WyckoffType
+class WyckoffType;
 
 class Basis {
 protected:
@@ -40,6 +42,29 @@ public:
   void set_value(double new_value);
   void reset_value();
   double get_random_value(const double kT) const;
+};
+
+class Site {
+public:
+  const WyckoffType* const wyckoff;
+  Basis* x;
+  Basis* y;
+  Basis* angle;
+  bool flip_site = false;
+
+  Vect3 site_variables() const;
+  Vect2 get_position() const;
+  int get_flip_sign() const;
+  int get_multiplicity() const;
+};
+
+struct Cell {
+  Basis* x_len;
+  Basis* y_len;
+  Basis* angle;
+
+  Vect2 fractional_to_real(const Vect2&) const;
+  double area() const;
 };
 
 class CellLengthBasis : public Basis {
