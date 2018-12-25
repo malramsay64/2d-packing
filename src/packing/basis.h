@@ -6,6 +6,7 @@
  */
 
 #include <vector>
+#include <memory>
 
 #include <pybind11/pybind11.h>
 
@@ -46,10 +47,10 @@ public:
 
 class Site {
 public:
-  const WyckoffType* const wyckoff;
-  Basis* x;
-  Basis* y;
-  Basis* angle;
+  std::shared_ptr<WyckoffType> wyckoff;
+  std::shared_ptr<Basis> x;
+  std::shared_ptr<Basis> y;
+  std::shared_ptr<Basis> angle;
   bool flip_site = false;
 
   Vect3 site_variables() const;
@@ -59,9 +60,9 @@ public:
 };
 
 struct Cell {
-  Basis* x_len;
-  Basis* y_len;
-  Basis* angle;
+    std::shared_ptr<Basis> x_len;
+    std::shared_ptr<Basis> y_len;
+    std::shared_ptr<Basis> angle;
 
   Vect2 fractional_to_real(const Vect2&) const;
   double area() const;
@@ -88,16 +89,16 @@ private:
 
 public:
   const double step_size;
-  Basis* const cell_x_len;
-  Basis* const cell_y_len;
+  std::shared_ptr<Basis> cell_x_len;
+  std::shared_ptr<Basis> cell_y_len;
 
   CellAngleBasis(
       const double value,
       const double min_val,
       const double max_val,
       const double step_size,
-      Basis* const cell_x_len,
-      Basis* const cell_y_len)
+      std::shared_ptr<Basis> cell_x_len,
+      std::shared_ptr<Basis> cell_y_len)
       : Basis(value, min_val, max_val), step_size(step_size), cell_x_len(cell_x_len),
         cell_y_len(cell_y_len){};
 
@@ -130,12 +131,12 @@ public:
 
 class FlipBasis : public Basis {
 private:
-  std::vector<Site>* const occupied_sites;
-  int value_previous;
+    std::shared_ptr<std::vector<Site>> occupied_sites;
+    int value_previous;
 
 public:
-  FlipBasis(std::vector<Site>* const occupied_sites)
-      : Basis(0, 0, occupied_sites->size()), occupied_sites(occupied_sites){};
+  FlipBasis(std::vector<Site>& occupied_sites)
+      : Basis(0, 0, occupied_sites.size()), occupied_sites(std::shared_ptr<std::vector<Site>>(&occupied_sites)){};
 
   double get_random_value(const double kT) const;
   void set_value(double new_value);

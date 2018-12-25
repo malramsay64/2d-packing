@@ -10,6 +10,7 @@
 #include <cmath>
 #include <string>
 #include <vector>
+#include <memory>
 
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/spdlog.h>
@@ -102,23 +103,23 @@ int initialize_structure_in_group(
     console->debug("Cell sides equal");
     basis.push_back(CellLengthBasis(max_cell_size, 0.1, max_cell_size, step_size));
 
-    cell.x_len = &basis.back();
-    cell.y_len = &basis.back();
+    cell.x_len = std::shared_ptr<Basis>(&basis.back());
+    cell.y_len = std::shared_ptr<Basis>(&basis.back());
   } else {
     basis.push_back(CellLengthBasis(max_cell_size, 0.1, max_cell_size, step_size));
-    cell.x_len = &basis.back();
+    cell.x_len = std::shared_ptr<Basis>(&basis.back());
 
     basis.push_back(CellLengthBasis(max_cell_size, 0.1, max_cell_size, step_size));
-    cell.y_len = &basis.back();
+    cell.y_len = std::shared_ptr<Basis>(&basis.back());
   }
 
   // cell angles.
   if (group.hexagonal) {
     console->debug("Hexagonal group");
-    cell.angle = new FixedBasis(M_PI / 3);
+    cell.angle = std::make_shared<FixedBasis>(M_PI / 3);
   } else if (group.rectangular) {
     console->debug("Rectangular group");
-    cell.angle = new FixedBasis(M_PI_2);
+    cell.angle = std::make_shared<FixedBasis>(M_PI_2);
   } else {
     console->debug("Tilted group");
     basis.push_back(CellAngleBasis(
@@ -128,7 +129,7 @@ int initialize_structure_in_group(
         step_size,
         cell.x_len,
         cell.y_len));
-    cell.angle = &basis.back();
+    cell.angle = std::shared_ptr<Basis>(&basis.back());
   }
 
   // now position the particles.
@@ -140,13 +141,13 @@ int initialize_structure_in_group(
     if (fabs(site.wyckoff->image[0].x_coeffs.x) > 0.1) {
       /* x is variable*/
       basis.push_back(Basis(fluke(), 0, 1));
-      site.x = &basis.back();
+      site.x = std::shared_ptr<Basis>(&basis.back());
       console->debug("Site x variable %f\n", site.x->get_value());
     }
     if (fabs(site.wyckoff->image[0].y_coeffs.y) > 0.1) {
       /* then y is variable*/
       basis.push_back(Basis(fluke(), 0, 1));
-      site.y = &basis.back();
+      site.y = std::shared_ptr<Basis>(&basis.back());
       console->debug("Site y variable %f\n", site.y->get_value());
     }
 
@@ -157,11 +158,11 @@ int initialize_structure_in_group(
       const int mirrors{site.wyckoff->image[0].site_mirror};
       const double value{M_PI / 180 * mirrors};
       basis.push_back(MirrorBasis(value, 0, 2 * PI, mirrors));
-      site.angle = &basis.back();
+      site.angle = std::shared_ptr<Basis>(&basis.back());
     } else {
       const double value{fluke() * M_2_PI};
       basis.push_back(Basis(value, 0, M_2_PI, step_size));
-      site.angle = &basis.back();
+      site.angle = std::shared_ptr<Basis>(&basis.back());
       console->debug("site offset-angle is variable %f\n", site.angle->get_value());
     }
   }
@@ -202,7 +203,7 @@ void uniform_best_packing_in_isopointal_group(
   std::vector<Basis> basis;
   std::vector<Site> occupied_sites;
   Cell cell;
-  FlipBasis flip_basis{&occupied_sites};
+  FlipBasis flip_basis{occupied_sites};
 
   initialize_structure_in_group(
       shape, group, cell, occupied_sites, basis, max_step_size);
