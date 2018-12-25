@@ -141,7 +141,8 @@ void export_Basis(py::module& m) {
       .def("reset_value", &Basis::reset_value)
       .def("get_random_value", &Basis::get_random_value);
 
-  py::class_<CellLengthBasis, Basis, std::shared_ptr<CellLengthBasis>> cell_length_basis(m, "CellLengthBasis");
+  py::class_<CellLengthBasis, Basis, std::shared_ptr<CellLengthBasis>>
+      cell_length_basis(m, "CellLengthBasis");
   cell_length_basis
       .def(
           py::init<const double, const double, const double, const double>(),
@@ -149,12 +150,20 @@ void export_Basis(py::module& m) {
           py::arg("min_val"),
           py::arg("max_val"),
           py::arg("step_size") = 0.01)
-      .def_property("value", &CellLengthBasis::get_value, &CellLengthBasis::set_value);
+      .def_property("value", &CellLengthBasis::get_value, &CellLengthBasis::set_value)
+      .def("get_random_value", &CellLengthBasis::get_random_value);
 
-  py::class_<CellAngleBasis, Basis, std::shared_ptr<CellAngleBasis>> cell_angle_basis(m, "CellAngleBasis");
+  py::class_<CellAngleBasis, Basis, std::shared_ptr<CellAngleBasis>> cell_angle_basis(
+      m, "CellAngleBasis");
   cell_angle_basis
       .def(
-          py::init<const double, const double, const double, const double, std::shared_ptr<Basis>, std::shared_ptr<Basis>>(),
+          py::init<
+              const double,
+              const double,
+              const double,
+              const double,
+              std::shared_ptr<Basis>,
+              std::shared_ptr<Basis>>(),
           py::arg("value"),
           py::arg("min_val"),
           py::arg("max_val"),
@@ -166,18 +175,16 @@ void export_Basis(py::module& m) {
       .def_readonly("cell_y_len", &CellAngleBasis::cell_y_len)
       .def("reset_value", &CellAngleBasis::reset_value);
 
-  py::class_<FixedBasis, Basis, std::shared_ptr<FixedBasis>> fixed_basis(m, "FixedBasis");
-  fixed_basis
-      .def(
-          py::init<const double>(),
-          py::arg("value"));
+  py::class_<FixedBasis, Basis, std::shared_ptr<FixedBasis>> fixed_basis(
+      m, "FixedBasis");
+  fixed_basis.def(py::init<const double>(), py::arg("value"));
 
-  py::class_<MirrorBasis, Basis, std::shared_ptr<MirrorBasis>> mirror_basis(m, "MirrorBasis");
-  mirror_basis
-      .def(
-          py::init<const double, const double, const double, const int>(),
-          py::arg("value"),
-          py::arg("min_val"),
-          py::arg("max_val"),
-          py::arg("mirrors"));
+  py::class_<MirrorBasis, Basis, std::shared_ptr<MirrorBasis>> mirror_basis(
+      m, "MirrorBasis");
+  mirror_basis.def(
+      py::init<const double, const double, const double, const int>(),
+      py::arg("value"),
+      py::arg("min_val"),
+      py::arg("max_val"),
+      py::arg("mirrors"));
 }

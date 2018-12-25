@@ -13,7 +13,7 @@ import pytest
 from hypothesis import given
 from hypothesis.strategies import floats
 
-from _packing import Basis, CellAngleBasis, FixedBasis
+from _packing import Basis, CellAngleBasis, CellLengthBasis, FixedBasis
 
 
 class BasisFixture(NamedTuple):
@@ -25,22 +25,48 @@ class BasisFixture(NamedTuple):
     cell_y: Optional[Basis] = None
 
 
-@pytest.fixture(params=range(10))
+@pytest.fixture(params=["Basis", "CellAngleBasis", "CellLengthBasis"])
 def basis_fixture(request):
-    yield BasisFixture(
-        expected_value=request.param / 10,
-        expected_min_value=0,
-        expected_max_value=1,
-        basis=Basis(request.param / 10, 0, 1),
+    value = 0.5
+    min_val = 0
+    max_val = 1
+    cell_x = None
+    cell_y = None
+    if request.param == "Basis":
+        basis = Basis(value, min_val, max_val)
+    elif request.param == "CellAngleBasis":
+        step = 0.01
+        cell_x = Basis(0.5, 0, 1)
+        cell_y = Basis(0.5, 0, 1)
+        basis = CellAngleBasis(value, min_val, max_val, step, cell_x, cell_y)
+    elif request.param == "FixedBasis":
+        min_val = value
+        max_val = value
+        basis = FixedBasis(value)
+    elif request.param == "CellLengthBasis":
+        basis = CellLengthBasis(value, min_val, max_val)
+
+    else:
+        raise NotImplementedError(f"The basis {request.param} is not implemented.")
+
+    return BasisFixture(
+        expected_value=value,
+        expected_min_value=min_val,
+        expected_max_value=max_val,
+        basis=basis,
+        cell_x=cell_x,
+        cell_y=cell_y,
     )
 
 
 def test_init(basis_fixture):
-    assert isinstance(basis_fixture.basis, Basis)
+    basis = basis_fixture.basis
+    assert isinstance(basis, Basis)
 
 
 def test_value(basis_fixture):
-    assert basis_fixture.basis.value == basis_fixture.expected_value
+    basis = basis_fixture.basis
+    assert basis.value == basis_fixture.expected_value
 
 
 @given(floats(min_value=0, max_value=1))
@@ -70,58 +96,36 @@ def test_reset_value_any(basis_fixture, new_value):
     assert basis.value == basis_fixture.expected_value
 
 
-@pytest.fixture()
-def fixed_basis_fixture():
-    yield BasisFixture(
-        expected_value=1,
-        expected_min_value=1,
-        expected_max_value=1,
-        basis=FixedBasis(1),
-    )
-
-
-def test_fixed_basis(fixed_basis_fixture):
-    basis = fixed_basis_fixture.basis
-    assert basis.value == fixed_basis_fixture.expected_value
+@pytest.mark.parametrize("basis_fixture", ["FixedBasis"], indirect=["basis_fixture"])
+def test_fixed_basis(basis_fixture):
+    basis = basis_fixture.basis
+    assert basis.value == basis_fixture.expected_value
 
     basis.value = 0
-    assert basis.value == fixed_basis_fixture.expected_value
+    assert basis.value == basis_fixture.expected_value
     assert basis.value_range() == 0
 
 
-@pytest.fixture()
-def cell_angle_basis_fixture():
-    value = math.pi / 3
-    max_val = 3 * math.pi / 4
-    min_val = math.pi / 4
-    step = 0.01
-    cell_x = Basis(0.5, 0, 1)
-    cell_y = Basis(0.5, 0, 1)
-    basis = BasisFixture(
-        expected_value=value,
-        expected_min_value=min_val,
-        expected_max_value=max_val,
-        basis=CellAngleBasis(value, min_val, max_val, step, cell_x, cell_y),
-        cell_x=cell_x,
-        cell_y=cell_y,
-    )
-    yield basis
+@pytest.mark.parametrize(
+    "basis_fixture", ["CellAngleBasis"], indirect=["basis_fixture"]
+)
+def test_cell_angle_basis(basis_fixture):
+    basis = basis_fixture.basis
+    assert basis_fixture.cell_x is basis.cell_x_len
+    assert basis_fixture.cell_y is basis.cell_y_len
 
+    # Make angle smaller
+    basis.value = 0.4
+    assert basis_fixture.cell_x.value > 0.5
+    assert basis_fixture.cell_y.value > 0.5
 
-def test_cell_angle_basis(cell_angle_basis_fixture):
-    basis = cell_angle_basis_fixture.basis
-    assert cell_angle_basis_fixture.cell_x is basis.cell_x_len
-    assert cell_angle_basis_fixture.cell_y is basis.cell_y_len
-
-    basis.value = math.pi / 4
-    assert cell_angle_basis_fixture.cell_x.value > 0.5
-    assert cell_angle_basis_fixture.cell_y.value > 0.5
-
+    # Reset angle
     basis.reset_value()
-    assert math.isclose(basis.value, cell_angle_basis_fixture.expected_value)
-    assert cell_angle_basis_fixture.cell_x.value == 0.5
-    assert cell_angle_basis_fixture.cell_y.value == 0.5
+    assert math.isclose(basis.value, basis_fixture.expected_value)
+    assert basis_fixture.cell_x.value == 0.5
+    assert basis_fixture.cell_y.value == 0.5
 
-    basis.value = math.pi / 2
-    assert cell_angle_basis_fixture.cell_x.value < 0.5
-    assert cell_angle_basis_fixture.cell_y.value < 0.5
+    # Make angle larger
+    basis.value = 0.6
+    assert basis_fixture.cell_x.value < 0.5
+    assert basis_fixture.cell_y.value < 0.5
