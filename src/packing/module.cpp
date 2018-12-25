@@ -7,6 +7,7 @@
 
 #include <pybind11/pybind11.h>
 
+#include "basis.h"
 #include "geometry.h"
 #include "math.h"
 #include "random.h"
@@ -22,6 +23,7 @@ PYBIND11_MODULE(_packing, m) {
   export_Shape(m);
   export_Vect2(m);
   export_geometry(m);
+  export_Basis(m);
 
 #ifdef VERSION_INFO
   m.attr("__version__") = VERSION_INFO;

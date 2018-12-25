@@ -127,4 +127,16 @@ void FlipBasis::reset_value() {
   this->value_previous = -1;
 }
 
-void export_Basis(py::module& m) {}
+void export_Basis(py::module& m) {
+  py::class_<Basis> basis(m, "Basis");
+  basis
+      .def(
+          py::init<const double, const double, const double, const double>(),
+          py::arg("value"),
+          py::arg("min_val"),
+          py::arg("max_val"),
+          py::arg("step_size") = 0.01)
+      .def_property("value", &Basis::get_value, &Basis::set_value)
+      .def("value_range", &Basis::value_range)
+      .def("reset_value", &Basis::reset_value);
+}

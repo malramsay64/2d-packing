@@ -26,7 +26,7 @@ protected:
 public:
   const double min_val;
   const double max_val;
-  const double step_size = 1;
+  const double step_size = 0.01;
 
   Basis(
       const double value,
@@ -35,7 +35,7 @@ public:
       const double step_size)
       : value(value), min_val(min_val), max_val(max_val), step_size(step_size){};
   Basis(const double value, const double min_val, const double max_val)
-      : Basis(value, min_val, max_val, 1){};
+      : Basis(value, min_val, max_val, 0.01){};
 
   double value_range() const;
   double get_value() const;
