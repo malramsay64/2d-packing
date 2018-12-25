@@ -12,7 +12,7 @@ import pytest
 from hypothesis import given
 from hypothesis.strategies import floats
 
-from _packing import Basis
+from _packing import Basis, FixedBasis
 
 
 class BasisFixture(NamedTuple):
@@ -57,3 +57,22 @@ def test_set_value_any(basis_fixture, new_value):
         assert basis.value == basis_fixture.expected_max_value
     else:
         assert basis.value == new_value
+
+
+@pytest.fixture()
+def fixed_basis_fixture():
+    yield BasisFixture(
+        expected_value=1,
+        expected_min_value=1,
+        expected_max_value=1,
+        basis=FixedBasis(1),
+    )
+
+
+def test_fixed_basis(fixed_basis_fixture):
+    basis = fixed_basis_fixture.basis
+    assert basis.value == fixed_basis_fixture.expected_value
+
+    basis.value = 0
+    assert basis.value == fixed_basis_fixture.expected_value
+    assert basis.value_range() == 0
