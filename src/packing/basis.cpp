@@ -100,13 +100,13 @@ void CellAngleBasis::reset_cell_lengths() {
 double MirrorBasis::get_random_value(const double kT) const {
   if ((this->mirrors % 2 == 0) && (fluke() < 0.5)) {
     /* turn it 90 degrees to switch the x and y mirror planes */
-    if (this->value < M_PI * 3.0 / 4.0) {
+    if (this->value < 3 * M_PI_4) {
       return this->value + PI / this->mirrors;
     }
     return this->value - PI / this->mirrors;
   }
   /* turn it 180 degrees so that all mirror planes are preserved */
-  return positive_modulo(this->value + PI, 2 * PI);
+  return positive_modulo(this->value + M_PI, M_2_PI);
 }
 
 double FlipBasis::get_random_value(const double kT) const {
@@ -115,20 +115,20 @@ double FlipBasis::get_random_value(const double kT) const {
 
 void FlipBasis::set_value(double new_value) {
   this->value_previous = static_cast<int>(std::round(new_value));
-  occupied_sites->at(this->value_previous).flip_site ^= 1;
+  this->occupied_sites->at(this->value_previous).flip_site ^= 1;
 }
 
 void FlipBasis::reset_value() {
   if (this->value_previous == -1) {
     return;
   }
-  occupied_sites->at(this->value_previous).flip_site ^= 1;
+  this->occupied_sites->at(this->value_previous).flip_site ^= 1;
   // Only allow the reset_value to occur once
   this->value_previous = -1;
 }
 
 void export_Basis(py::module& m) {
-  py::class_<Basis> basis(m, "Basis");
+  py::class_<Basis, std::shared_ptr<Basis>> basis(m, "Basis");
   basis
       .def(
           py::init<const double, const double, const double, const double>(),
@@ -141,33 +141,38 @@ void export_Basis(py::module& m) {
       .def("reset_value", &Basis::reset_value)
       .def("get_random_value", &Basis::get_random_value);
 
-  py::class_<CellLengthBasis, Basis> cell_length_basis(m, "CellLengthBasis");
+  py::class_<CellLengthBasis, Basis, std::shared_ptr<CellLengthBasis>> cell_length_basis(m, "CellLengthBasis");
   cell_length_basis
       .def(
           py::init<const double, const double, const double, const double>(),
           py::arg("value"),
           py::arg("min_val"),
           py::arg("max_val"),
-          py::arg("step_size") = 0.01);
+          py::arg("step_size") = 0.01)
+      .def_property("value", &CellLengthBasis::get_value, &CellLengthBasis::set_value);
 
-  py::class_<CellAngleBasis, Basis> cell_angle_basis(m, "CellAngleBasis");
+  py::class_<CellAngleBasis, Basis, std::shared_ptr<CellAngleBasis>> cell_angle_basis(m, "CellAngleBasis");
   cell_angle_basis
       .def(
-          py::init<const double, const double, const double, const double, Basis * const, Basis* const>(),
+          py::init<const double, const double, const double, const double, std::shared_ptr<Basis>, std::shared_ptr<Basis>>(),
           py::arg("value"),
           py::arg("min_val"),
           py::arg("max_val"),
           py::arg("step_size"),
           py::arg("cell_x_len"),
-          py::arg("cell_y_len"));
+          py::arg("cell_y_len"))
+      .def_property("value", &CellAngleBasis::get_value, &CellAngleBasis::set_value)
+      .def_readonly("cell_x_len", &CellAngleBasis::cell_x_len)
+      .def_readonly("cell_y_len", &CellAngleBasis::cell_y_len)
+      .def("reset_value", &CellAngleBasis::reset_value);
 
-  py::class_<FixedBasis, Basis> fixed_basis(m, "FixedBasis");
+  py::class_<FixedBasis, Basis, std::shared_ptr<FixedBasis>> fixed_basis(m, "FixedBasis");
   fixed_basis
       .def(
           py::init<const double>(),
           py::arg("value"));
 
-  py::class_<MirrorBasis, Basis> mirror_basis(m, "MirrorBasis");
+  py::class_<MirrorBasis, Basis, std::shared_ptr<MirrorBasis>> mirror_basis(m, "MirrorBasis");
   mirror_basis
       .def(
           py::init<const double, const double, const double, const int>(),
