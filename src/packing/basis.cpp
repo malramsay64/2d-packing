@@ -15,7 +15,9 @@
 
 namespace py = pybind11;
 
-double Basis::value_range() const { return this->max_val - this->min_val; };
+double Basis::value_range() const {
+  return this->max_val - this->min_val;
+}
 
 void Basis::set_value(double new_value) {
   if (new_value < this->min_val) {
@@ -26,9 +28,13 @@ void Basis::set_value(double new_value) {
   this->value_previous = this->value;
   this->value = new_value;
 }
-double Basis::get_value() const { return this->value; };
+double Basis::get_value() const {
+  return this->value;
+}
 
-void Basis::reset_value() { this->value = this->value_previous; };
+void Basis::reset_value() {
+  this->value = this->value_previous;
+}
 
 double Basis::get_random_value(const double kT) const {
   return this->value + this->step_size * this->value_range() * (fluke() - 0.5);
@@ -36,20 +42,24 @@ double Basis::get_random_value(const double kT) const {
 
 Vect3 Site::site_variables() const {
   return Vect3(this->x->get_value(), this->y->get_value(), this->angle->get_value());
-};
+}
 
 Vect2 Site::get_position() const {
   return Vect2(this->x->get_value(), this->y->get_value());
-};
+}
 
-int Site::get_flip_sign() const { return this->flip_site ? 1 : -1; };
+int Site::get_flip_sign() const {
+  return this->flip_site ? 1 : -1;
+}
 
-int Site::get_multiplicity() const { return this->wyckoff->multiplicity; };
+int Site::get_multiplicity() const {
+  return this->wyckoff->multiplicity;
+}
 
 double Cell::area() const {
   return this->x_len->get_value() * this->y_len->get_value() *
          std::fabs(std::sin(this->angle->get_value()));
-};
+}
 
 Vect2 Cell::fractional_to_real(const Vect2& fractional) const {
   Vect2 v(0, 0);
@@ -76,12 +86,12 @@ void CellAngleBasis::set_value(double new_value) {
   this->value_previous = this->value;
   this->value = new_value;
   this->update_cell_lengths();
-};
+}
 
 void CellAngleBasis::reset_value() {
   this->value = this->value_previous;
   this->reset_cell_lengths();
-};
+}
 
 void CellAngleBasis::update_cell_lengths() {
   this->cell_x_len->set_value(
@@ -90,12 +100,12 @@ void CellAngleBasis::update_cell_lengths() {
   this->cell_y_len->set_value(
       this->cell_y_len->get_value() *
       sqrt(sin(this->value_previous) / sin(this->value)));
-};
+}
 
 void CellAngleBasis::reset_cell_lengths() {
   this->cell_x_len->reset_value();
   this->cell_y_len->reset_value();
-};
+}
 
 double MirrorBasis::get_random_value(const double kT) const {
   if ((this->mirrors % 2 == 0) && (fluke() < 0.5)) {

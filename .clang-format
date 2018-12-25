@@ -3,6 +3,10 @@ BasedOnStyle: LLVM
 IndentWidth: 2
 ---
 Language: Cpp
+AlignTrailingComments: true
+AllowShortFunctionsOnASingleLine: false
+ConstructorInitializerAllOnOneLineOrOnePerLine: false
+ContinuationIndentWidth: 4
 # Force pointers to the type for C++.
 DerivePointerAlignment: false
 PointerAlignment: Left

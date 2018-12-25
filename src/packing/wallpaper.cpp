@@ -8,9 +8,9 @@
 #include "wallpaper.h"
 
 #include <cmath>
+#include <memory>
 #include <string>
 #include <vector>
-#include <memory>
 
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/spdlog.h>
@@ -172,7 +172,9 @@ int initialize_structure_in_group(
   return basis.size();
 }
 
-bool there_is_collision() { return true; }
+bool there_is_collision() {
+  return true;
+}
 
 void uniform_best_packing_in_isopointal_group(
     Shape& shape,

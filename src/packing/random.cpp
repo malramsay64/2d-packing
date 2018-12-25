@@ -12,6 +12,10 @@
 std::mt19937_64 generator;
 std::uniform_real_distribution<double> distribution(0.0, 1.0);
 
-double fluke() { return distribution(generator); };
+double fluke() {
+  return distribution(generator);
+}
 
-void export_fluke(pybind11::module& m) { m.def("fluke", &fluke); };
+void export_fluke(pybind11::module& m) {
+  m.def("fluke", &fluke);
+}

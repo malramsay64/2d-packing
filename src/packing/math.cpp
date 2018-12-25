@@ -18,34 +18,49 @@ double positive_modulo(const double i, const double n) {
   return std::fmod(std::fmod(i, n) + n, n);
 }
 
-int positive_modulo(const int i, const int n) { return ((i % n) + n) % n; }
+int positive_modulo(const int i, const int n) {
+  return ((i % n) + n) % n;
+}
 
-int sign(double val) { return (double{0} < val) - (val < double{0}); }
+int sign(double val) {
+  return (double{0} < val) - (val < double{0});
+}
 
 Vect2 Vect2::operator+(const Vect2& other) const {
   return Vect2(this->x + other.x, this->y + other.y);
 }
+
 Vect2 Vect2::operator-(const Vect2& other) const {
   return Vect2(this->x - other.x, this->y - other.y);
 }
+
 Vect2 Vect2::operator*(const Vect2& other) const {
   return Vect2(this->x * other.x, this->y * other.y);
 }
+
 Vect2 Vect2::operator*(const float other) const {
   return Vect2(this->x * other, this->y * other);
 }
+
 Vect2 Vect2::operator==(const Vect2& other) const {
   return Vect2(this->x == other.x, this->y == other.y);
 }
+
 Vect2 Vect2::operator%(const Vect2& other) const {
   return Vect2(std::fmod(this->x, other.x), std::fmod(this->y, other.y));
 }
+
 Vect2 Vect2::operator%(const double other) const {
   return Vect2(std::fmod(this->x, other), std::fmod(this->y, other));
 }
 
-double Vect2::norm_sq() const { return this->x * this->x + this->y * this->y; }
-double Vect2::norm() const { return std::sqrt(this->norm_sq()); }
+double Vect2::norm_sq() const {
+  return this->x * this->x + this->y * this->y;
+}
+
+double Vect2::norm() const {
+  return std::sqrt(this->norm_sq());
+}
 
 Vect2& positive_modulo(Vect2& v, const double modulo) {
   v.x = positive_modulo(v.x, modulo);

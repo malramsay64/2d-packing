@@ -10,10 +10,10 @@
 #include <algorithm>
 #include <cassert>
 #include <cmath>
-#include <sstream>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
+#include <sstream>
 
 #include <pybind11/stl.h>
 
@@ -32,14 +32,22 @@ Shape::Shape(
   auto min_max = std::minmax_element(radial_points.begin(), radial_points.end());
   this->min_radius = *min_max.first;
   this->max_radius = *min_max.second;
-};
+}
 
 Shape::Shape(const std::string& name, const std::vector<double>& radial_points)
     : Shape(name, radial_points, 1, 0){};
 
-int Shape::resolution() const { return this->radial_points.size(); };
-double Shape::angular_step() const { return 2 * PI / this->resolution(); };
-double Shape::get_point(const int index) const { return this->radial_points.at(index); }
+int Shape::resolution() const {
+  return this->radial_points.size();
+}
+
+double Shape::angular_step() const {
+  return 2 * PI / this->resolution();
+}
+
+double Shape::get_point(const int index) const {
+  return this->radial_points.at(index);
+}
 
 void Shape::plot(const std::string& filename) const {
   std::ofstream outfile;
@@ -52,7 +60,7 @@ void Shape::plot(const std::string& filename) const {
             << this->radial_points[i] * sin(angle) << std::endl;
   }
   outfile.close();
-};
+}
 
 /* This uses the side-angle-side method of calculating the area, that is
  *     Area = side_a * side_b * sin(angle_ab)
@@ -137,21 +145,27 @@ bool ShapeInstance::operator==(const ShapeInstance& other) const {
   return (
       this->shape == other.shape && this->site == other.site &&
       this->image == other.image);
-};
+}
 
 Vect2 ShapeInstance::get_fractional_coordinates() const {
   return this->image->real_to_fractional(*this->site);
 }
+
 Vect2 ShapeInstance::get_real_coordinates() const {
   return this->site->get_position();
-};
-double ShapeInstance::get_angle() const { return this->site->angle->get_value(); };
+}
+
+double ShapeInstance::get_angle() const {
+  return this->site->angle->get_value();
+}
+
 double ShapeInstance::get_rotational_offset() const {
   return this->image->rotation_offset;
-};
+}
+
 bool ShapeInstance::get_flipped() const {
   return this->image->flipped ^ this->site->flip_site;
-};
+}
 
 std::pair<double, double> ShapeInstance::compute_incline(
     const ShapeInstance& other,

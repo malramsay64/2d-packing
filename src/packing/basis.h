@@ -5,8 +5,8 @@
  * Distributed under terms of the MIT license.
  */
 
-#include <vector>
 #include <memory>
+#include <vector>
 
 #include <pybind11/pybind11.h>
 
@@ -60,9 +60,9 @@ public:
 };
 
 struct Cell {
-    std::shared_ptr<Basis> x_len;
-    std::shared_ptr<Basis> y_len;
-    std::shared_ptr<Basis> angle;
+  std::shared_ptr<Basis> x_len;
+  std::shared_ptr<Basis> y_len;
+  std::shared_ptr<Basis> angle;
 
   Vect2 fractional_to_real(const Vect2&) const;
   double area() const;
@@ -131,12 +131,13 @@ public:
 
 class FlipBasis : public Basis {
 private:
-    std::shared_ptr<std::vector<Site>> occupied_sites;
-    int value_previous;
+  std::shared_ptr<std::vector<Site>> occupied_sites;
+  int value_previous;
 
 public:
   FlipBasis(std::vector<Site>& occupied_sites)
-      : Basis(0, 0, occupied_sites.size()), occupied_sites(std::shared_ptr<std::vector<Site>>(&occupied_sites)){};
+      : Basis(0, 0, occupied_sites.size()),
+        occupied_sites(std::shared_ptr<std::vector<Site>>(&occupied_sites)){};
 
   double get_random_value(const double kT) const;
   void set_value(double new_value);
