@@ -9,6 +9,8 @@
 from typing import NamedTuple
 
 import pytest
+from hypothesis import given
+from hypothesis.strategies import floats
 
 from _packing import Basis
 
@@ -36,3 +38,22 @@ def test_init(basis_fixture):
 
 def test_value(basis_fixture):
     assert basis_fixture.basis.value == basis_fixture.expected_value
+
+
+@given(floats(min_value=0, max_value=1))
+def test_set_value(basis_fixture, new_value):
+    basis = basis_fixture.basis
+    basis.value = new_value
+    assert basis.value == new_value
+
+
+@given(floats(allow_nan=False))
+def test_set_value_any(basis_fixture, new_value):
+    basis = basis_fixture.basis
+    basis.value = new_value
+    if new_value < basis_fixture.expected_min_value:
+        assert basis.value == basis_fixture.expected_min_value
+    elif new_value > basis_fixture.expected_max_value:
+        assert basis.value == basis_fixture.expected_max_value
+    else:
+        assert basis.value == new_value

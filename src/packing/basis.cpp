@@ -138,5 +138,41 @@ void export_Basis(py::module& m) {
           py::arg("step_size") = 0.01)
       .def_property("value", &Basis::get_value, &Basis::set_value)
       .def("value_range", &Basis::value_range)
-      .def("reset_value", &Basis::reset_value);
+      .def("reset_value", &Basis::reset_value)
+      .def("get_random_value", &Basis::get_random_value);
+
+  py::class_<CellLengthBasis, Basis> cell_length_basis(m, "CellLengthBasis");
+  cell_length_basis
+      .def(
+          py::init<const double, const double, const double, const double>(),
+          py::arg("value"),
+          py::arg("min_val"),
+          py::arg("max_val"),
+          py::arg("step_size") = 0.01);
+
+  py::class_<CellAngleBasis, Basis> cell_angle_basis(m, "CellAngleBasis");
+  cell_angle_basis
+      .def(
+          py::init<const double, const double, const double, const double, Basis * const, Basis* const>(),
+          py::arg("value"),
+          py::arg("min_val"),
+          py::arg("max_val"),
+          py::arg("step_size"),
+          py::arg("cell_x_len"),
+          py::arg("cell_y_len"));
+
+  py::class_<FixedBasis, Basis> fixed_basis(m, "FixedBasis");
+  fixed_basis
+      .def(
+          py::init<const double>(),
+          py::arg("value"));
+
+  py::class_<MirrorBasis, Basis> mirror_basis(m, "MirrorBasis");
+  mirror_basis
+      .def(
+          py::init<const double, const double, const double, const int>(),
+          py::arg("value"),
+          py::arg("min_val"),
+          py::arg("max_val"),
+          py::arg("mirrors"));
 }
