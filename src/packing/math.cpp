@@ -26,6 +26,10 @@ int sign(double val) {
   return (double{0} < val) - (val < double{0});
 }
 
+bool Vect2::operator==(const Vect2& other) const {
+  return this->x == other.x && this->y == other.y;
+}
+
 Vect2 Vect2::operator+(const Vect2& other) const {
   return Vect2(this->x + other.x, this->y + other.y);
 }
@@ -42,16 +46,16 @@ Vect2 Vect2::operator*(const float other) const {
   return Vect2(this->x * other, this->y * other);
 }
 
-Vect2 Vect2::operator==(const Vect2& other) const {
-  return Vect2(this->x == other.x, this->y == other.y);
-}
-
 Vect2 Vect2::operator%(const Vect2& other) const {
   return Vect2(std::fmod(this->x, other.x), std::fmod(this->y, other.y));
 }
 
 Vect2 Vect2::operator%(const double other) const {
   return Vect2(std::fmod(this->x, other), std::fmod(this->y, other));
+}
+
+bool Vect3::operator==(const Vect3& other) const {
+  return this->x == other.x && this->y == other.y && this->z == other.z;
 }
 
 double Vect2::norm_sq() const {

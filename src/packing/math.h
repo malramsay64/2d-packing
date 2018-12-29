@@ -26,11 +26,11 @@ struct Vect2 {
   Vect2(const double x, const double y) : x(x), y(y){};
   Vect2() : x(0), y(0){};
 
+  bool operator==(const Vect2& other) const;
   Vect2 operator+(const Vect2& other) const;
   Vect2 operator-(const Vect2& other) const;
   Vect2 operator*(const Vect2& other) const;
   Vect2 operator*(const float other) const;
-  Vect2 operator==(const Vect2& other) const;
   Vect2 operator%(const Vect2& other) const;
   Vect2 operator%(const double other) const;
 
@@ -46,6 +46,8 @@ struct Vect3 {
   double z;
 
   Vect3(const double x, const double y, const double z) : x(x), y(y), z(z){};
+
+  bool operator==(const Vect3& other) const;
 };
 
 double temperature_distribution(

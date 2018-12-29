@@ -68,6 +68,8 @@ public:
   bool flipped;
   enum mirror site_mirror;
 
+  bool operator==(const ImageType& other) const;
+
   Vect2 real_to_fractional(const Vect3& real) const;
   Vect2 real_to_fractional(const Site& site) const;
 };
@@ -80,15 +82,17 @@ public:
   int site_rotations;
   int site_mirrors;
   std::vector<ImageType> image;
+
+  bool operator==(const WyckoffType& other) const;
 };
 
 class ShapeInstance {
 public:
   ShapeInstance(const Shape& shape, Site& site, ImageType& image)
       : shape(&shape), site(&site), image(&image){};
-  const Shape* const shape;
-  Site* const site;
-  ImageType* const image;
+  const std::shared_ptr<const Shape> shape;
+  const std::shared_ptr<const Site> site;
+  const std::shared_ptr<const ImageType> image;
 
   bool operator==(const ShapeInstance& other) const;
 

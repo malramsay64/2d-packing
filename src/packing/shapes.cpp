@@ -121,6 +121,13 @@ std::vector<Vect2> Shape::generate_position_cache_full(const Vect2& position) co
   return position_cache;
 }
 
+bool ImageType::operator==(const ImageType& other) const {
+  return (
+      this->x_coeffs == other.x_coeffs && this->y_coeffs == other.y_coeffs &&
+      this->rotation_offset == other.rotation_offset &&
+      this->site_mirror == other.site_mirror);
+}
+
 Vect2 ImageType::real_to_fractional(const Vect3& real) const {
   /* converts site variables and wyckoff site coefficients into the location
    * of the actual wyckoff image in fractional coordinates */
@@ -139,6 +146,14 @@ Vect2 ImageType::real_to_fractional(const Site& site) const {
   v.y = this->y_coeffs.x * site.x->get_value() +
         this->y_coeffs.y * site.y->get_value() + this->y_coeffs.z;
   return positive_modulo(v, 1.);
+}
+
+bool WyckoffType::operator==(const WyckoffType& other) const {
+  return (
+      this->multiplicity == other.multiplicity && this->letter == other.letter &&
+      this->some_variability == other.some_variability &&
+      this->site_rotations == other.site_rotations &&
+      this->site_mirrors == other.site_mirrors && this->image == other.image);
 }
 
 bool ShapeInstance::operator==(const ShapeInstance& other) const {
