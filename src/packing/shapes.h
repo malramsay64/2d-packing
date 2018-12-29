@@ -5,6 +5,7 @@
  * Distributed under terms of the MIT license.
  */
 
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -118,7 +119,7 @@ public:
   int num_wyckoffs;
 };
 
-std::size_t group_multiplicity(const std::vector<Site>& occupied_sites);
+std::size_t group_multiplicity(const std::vector<WyckoffType>& occupied_sites);
 
 std::string create_filename(
     const Shape& shape,

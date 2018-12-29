@@ -21,7 +21,9 @@
 #include "random.h"
 #include "shapes.h"
 
-bool clash_polygon(
+/** Check whether two shape instances intersect
+ */
+bool check_for_clashes(
     const ShapeInstance& shape_a,
     const ShapeInstance& shape_b,
     const Cell& cell) {
@@ -84,11 +86,11 @@ double calculate_packing_fraction(
   return packing_fraction;
 }
 
-int initialize_structure_in_group(
+std::vector<Site> initialise_structure(
     Shape& shape,
     WallpaperGroup& group,
     Cell& cell,
-    std::vector<Site>& occupied_sites,
+    const std::vector<WyckoffType>& occupied_sites,
     std::vector<Basis>& basis,
     const double step_size) {
 
@@ -96,6 +98,7 @@ int initialize_structure_in_group(
   auto console = spdlog::stdout_color_mt("console");
 
   int count_replicas = group_multiplicity(occupied_sites);
+  std::vector<Site> sites;
 
   // cell sides.
   const double max_cell_size{4 * shape.max_radius * count_replicas};
@@ -133,18 +136,19 @@ int initialize_structure_in_group(
   }
 
   // now position the particles.
-  for (Site& site : occupied_sites) {
-    count_replicas += site.wyckoff->multiplicity;
+  for (auto& wyckoff : occupied_sites) {
+    Site site{};
+    count_replicas += wyckoff.multiplicity;
 
-    console->debug("Wyckoff site: %c ", site.wyckoff->letter);
+    console->debug("Wyckoff site: %c ", wyckoff.letter);
 
-    if (fabs(site.wyckoff->image[0].x_coeffs.x) > 0.1) {
+    if (fabs(wyckoff.image[0].x_coeffs.x) > 0.1) {
       /* x is variable*/
       basis.push_back(Basis(fluke(), 0, 1));
       site.x = std::shared_ptr<Basis>(&basis.back());
       console->debug("Site x variable %f\n", site.x->get_value());
     }
-    if (fabs(site.wyckoff->image[0].y_coeffs.y) > 0.1) {
+    if (fabs(wyckoff.image[0].y_coeffs.y) > 0.1) {
       /* then y is variable*/
       basis.push_back(Basis(fluke(), 0, 1));
       site.y = std::shared_ptr<Basis>(&basis.back());
@@ -154,8 +158,8 @@ int initialize_structure_in_group(
     /*choose the orientation of the zeroth image of this particle */
     /* This could also be done within the Wyckoff position SITEROTATION
      * parameter?... */
-    if (site.wyckoff->site_mirrors) {
-      const int mirrors{site.wyckoff->image[0].site_mirror};
+    if (wyckoff.site_mirrors) {
+      const int mirrors{wyckoff.image[0].site_mirror};
       const double value{M_PI / 180 * mirrors};
       basis.push_back(MirrorBasis(value, 0, 2 * PI, mirrors));
       site.angle = std::shared_ptr<Basis>(&basis.back());
@@ -169,7 +173,7 @@ int initialize_structure_in_group(
 
   console->debug("replicas %d variables %d os ", count_replicas, basis.size());
 
-  return basis.size();
+  return sites;
 }
 
 bool there_is_collision() {
@@ -179,6 +183,7 @@ bool there_is_collision() {
 void uniform_best_packing_in_isopointal_group(
     Shape& shape,
     WallpaperGroup& group,
+    const std::size_t num_occupied_sites,
     const std::size_t num_cycles,
     const std::size_t max_steps,
     const double max_step_size,
@@ -203,85 +208,172 @@ void uniform_best_packing_in_isopointal_group(
   double packing_fraction_prev;
 
   std::vector<Basis> basis;
-  std::vector<Site> occupied_sites;
   Cell cell;
-  FlipBasis flip_basis{occupied_sites};
+  std::vector<std::vector<WyckoffType>> occupied_sites =
+      generate_isopointal_groups(shape, group, num_occupied_sites);
 
-  initialize_structure_in_group(
-      shape, group, cell, occupied_sites, basis, max_step_size);
+  for (std::vector<WyckoffType>& occupied_site : occupied_sites) {
 
-  packing_fraction = calculate_packing_fraction(shape, cell, occupied_sites);
+    std::vector<Site> sites =
+        initialise_structure(shape, group, cell, occupied_site, basis, max_step_size);
+    FlipBasis flip_basis{sites};
 
-  console->info("Initial packing fraction = %f\n", packing_fraction);
+    packing_fraction = calculate_packing_fraction(shape, cell, sites);
 
-  while (monte_carlo_steps < max_steps) {
-    kT *= kT_ratio;
+    console->info("Initial packing fraction = %f\n", packing_fraction);
 
-    std::size_t vary_index{rand() % basis.size()};
-    Basis& basis_current = basis[vary_index];
+    while (monte_carlo_steps < max_steps) {
+      kT *= kT_ratio;
 
-    /* Occasionally allow flips */
-    if (monte_carlo_steps % 100) {
-      const double flip_index{flip_basis.get_random_value(kT)};
-      flip_basis.set_value(flip_index);
-    }
+      std::size_t vary_index{rand() % basis.size()};
+      Basis& basis_current = basis[vary_index];
 
-    packing_fraction_prev = packing_fraction;
-    const double new_value{basis_current.get_random_value(kT)};
-    basis_current.set_value(new_value);
-
-    if (there_is_collision()) {
-      rejections++;
-      basis_current.reset_value();
-    } else {
-      packing_fraction = calculate_packing_fraction(shape, cell, occupied_sites);
-      if (fluke() > temperature_distribution(
-                        packing_fraction_prev, packing_fraction, kT, count_replicas)) {
-        rejections++;
-        basis_current.reset_value();
-        flip_basis.reset_value();
-        packing_fraction = packing_fraction_prev;
+      /* Occasionally allow flips */
+      if (monte_carlo_steps % 100) {
+        const double flip_index{flip_basis.get_random_value(kT)};
+        flip_basis.set_value(flip_index);
       }
 
-      if (packing_fraction > packing_fraction_max) {
-        /* best packing seen yet ... save data */
-        best_basis = std::vector<Basis>(basis);
-        best_flips = std::vector<bool>();
-        for (const Site& site : occupied_sites) {
-          best_flips.push_back(site.flip_site);
+      packing_fraction_prev = packing_fraction;
+      const double new_value{basis_current.get_random_value(kT)};
+      basis_current.set_value(new_value);
+
+      if (there_is_collision()) {
+        rejections++;
+        basis_current.reset_value();
+      } else {
+        packing_fraction = calculate_packing_fraction(shape, cell, sites);
+        if (fluke() >
+            temperature_distribution(
+                packing_fraction_prev, packing_fraction, kT, count_replicas)) {
+          rejections++;
+          basis_current.reset_value();
+          flip_basis.reset_value();
+          packing_fraction = packing_fraction_prev;
+        }
+
+        if (packing_fraction > packing_fraction_max) {
+          /* best packing seen yet ... save data */
+          best_basis = std::vector<Basis>(basis);
+          best_flips = std::vector<bool>();
+          for (const Site& site : sites) {
+            best_flips.push_back(site.flip_site);
+          }
+        }
+
+        if (monte_carlo_steps % 500 == 0) {
+          console->debug(
+              "step %ld of %d, kT=%g, packing %f, angle %f, "
+              "b/a=%f, rejection %f percent\n",
+              monte_carlo_steps,
+              max_steps,
+              kT,
+              packing_fraction,
+              cell.angle->get_value() * 180.0 / M_PI,
+              cell.x_len->get_value() / cell.y_len->get_value(),
+              (100.0 * rejections) / monte_carlo_steps);
         }
       }
 
-      if (monte_carlo_steps % 500 == 0) {
+      packing_fraction = calculate_packing_fraction(shape, cell, sites);
+      console->info(
+          "BEST: cell %f %f angle %6.2f packing %f rejection (%f\%%) ",
+          cell.x_len->get_value(),
+          cell.y_len->get_value(),
+          cell.angle->get_value() * 180.0 / M_PI,
+          packing_fraction_max,
+          (100.0 * rejections) / monte_carlo_steps);
+      for (const Basis& b : basis) {
+        printf("%f ", b.get_value());
+      }
+      for (const bool flipped : best_flips) {
+        printf("%d ", flipped);
+      }
+      printf("\n");
+    }
+  }
+}
+
+std::vector<std::vector<WyckoffType>> combinations(
+    std::vector<WyckoffType>::iterator sites_begin,
+    std::vector<WyckoffType>::iterator sites_end,
+    int num_picked) {
+  std::vector<std::vector<WyckoffType>> site_occupation;
+
+  // Stopping condition: Only picking a single site
+  if (num_picked == 1) {
+    // Convert the 1D input array into a 2D array
+    for (auto& index = sites_begin; index != sites_end; sites_begin++) {
+      site_occupation.push_back(std::vector<WyckoffType>{*index});
+    }
+    // Return all the sites as a 2D array
+    return site_occupation;
+  }
+
+  for (auto& index = sites_begin; index != sites_end; index++) {
+    // Temporary variable for each loop
+    std::vector<std::vector<WyckoffType>> subsets;
+    // Wyckoff Type removed
+    subsets = combinations(index + 1, sites_end, num_picked - 1);
+    // Adding the current value to the front of the vector
+    for (auto& sub : subsets) {
+      sub.insert(sub.begin(), *index);
+    }
+    // Add the subset for the current value to the end of all values
+    site_occupation.insert(site_occupation.end(), subsets.begin(), subsets.end());
+  }
+  std::unique(site_occupation.begin(), site_occupation.end());
+  return site_occupation;
+}
+
+std::vector<std::vector<WyckoffType>> generate_isopointal_groups(
+    const Shape& shape,
+    const WallpaperGroup& group,
+    std::size_t num_occupied_sites
+
+) {
+  auto console = spdlog::stdout_color_mt("console");
+
+  std::vector<WyckoffType> valid_sites;
+  // first test if the shape has the required symmetries for various sites
+  // at the moment only tests rotations & mirrors... that's all?
+  for (const WyckoffType& wyckoff : group.wyckoffs) {
+    int rotational_match{shape.rotational_symmetries % wyckoff.site_rotations};
+    int mirror_match{shape.mirrors % wyckoff.site_mirrors};
+    if (rotational_match == 0) {
+      if ((wyckoff.site_mirrors == 0) ||
+          ((mirror_match == 0) && (shape.mirrors != 0))) {
+        if (wyckoff.some_variability) {
+          console->debug("site %c is valid and variable\n", wyckoff.letter);
+        } else {
+          printf("site %c is valid\n", wyckoff.letter);
+        }
+        if (wyckoff.some_variability) {
+          // Variable sites are added with replacement, so add one for each occupied
+          // site
+          valid_sites.insert(valid_sites.end(), num_occupied_sites, wyckoff);
+        } else {
+          valid_sites.push_back(wyckoff);
+        }
+      } else {
         console->debug(
-            "step %ld of %d, kT=%g, packing %f, angle %f, "
-            "b/a=%f, rejection %f percent\n",
-            monte_carlo_steps,
-            max_steps,
-            kT,
-            packing_fraction,
-            cell.angle->get_value() * 180.0 / M_PI,
-            cell.x_len->get_value() / cell.y_len->get_value(),
-            (100.0 * rejections) / monte_carlo_steps);
+            "site %c does not have the required rotational symmetry\n", wyckoff.letter);
       }
     }
-
-    packing_fraction = calculate_packing_fraction(shape, cell, occupied_sites);
-    console->info(
-        "BEST: cell %f %f angle %6.2f packing %f rejection (%f\%%) ",
-        cell.x_len->get_value(),
-        cell.y_len->get_value(),
-        cell.angle->get_value() * 180.0 / M_PI,
-        packing_fraction_max,
-        (100.0 * rejections) / monte_carlo_steps);
-    for (const Basis& b : basis) {
-      printf("%f ", b.get_value());
-    }
-    for (const bool flipped : best_flips) {
-      printf("%d ", flipped);
-    }
-    printf("\n");
   }
+
+  std::vector<std::vector<WyckoffType>> occupied_sites =
+      combinations(valid_sites.begin(), valid_sites.end(), num_occupied_sites);
+
+  printf("enumeration complete: in fact there were %lu ways\n", occupied_sites.size());
+
+  for (const auto& combination : occupied_sites) {
+    for (const auto& site : combination) {
+      printf(" %c", site.letter);
+      printf("\n");
+    }
+  }
+  return occupied_sites;
 }
 
 char compute_chiral_state(const std::vector<Site>& occupied_sites) {
