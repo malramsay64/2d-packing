@@ -23,7 +23,7 @@
 
 /** Check whether two shape instances intersect
  */
-bool check_for_clashes(
+bool check_for_intersection(
     const ShapeInstance& shape_a,
     const ShapeInstance& shape_b,
     const Cell& cell) {
@@ -161,7 +161,7 @@ std::vector<Site> initialise_structure(
     if (wyckoff.site_mirrors) {
       const int mirrors{wyckoff.image[0].site_mirror};
       const double value{M_PI / 180 * mirrors};
-      basis.push_back(MirrorBasis(value, 0, 2 * PI, mirrors));
+      basis.push_back(MirrorBasis(value, 0, M_2_PI, mirrors));
       site.angle = std::shared_ptr<Basis>(&basis.back());
     } else {
       const double value{fluke() * M_2_PI};
@@ -176,8 +176,32 @@ std::vector<Site> initialise_structure(
   return sites;
 }
 
-bool there_is_collision() {
-  return true;
+bool check_state_for_intersection(
+    const Shape& shape,
+    const std::vector<Site>& occupied_sites,
+    const Cell& cell) {
+  // Loop over all the occupied sites
+  for (auto site_one = occupied_sites.begin(); site_one != occupied_sites.end();
+       site_one++) {
+    // Loop over all images in the first occupied sites
+    for (const auto& image_one : site_one->wyckoff->image) {
+      const ShapeInstance shape_one{shape, *site_one, image_one};
+      // Loop over all occupied sites which haven't been compared with site_one
+      for (auto site_two = std::next(site_one); site_two != occupied_sites.end();
+           site_two++) {
+        // Loop over all images in the second occupied site
+        for (const auto& image_two : site_two->wyckoff->image) {
+          const ShapeInstance shape_two{shape, *site_two, image_two};
+          // If the two shapes intersect, return true, breaking out of the loop.
+          if (check_for_intersection(shape_one, shape_two, cell)) {
+            return true;
+          }
+        }
+      }
+    }
+  }
+  // Should there be no intersections between any shapes, return false
+  return false;
 }
 
 void uniform_best_packing_in_isopointal_group(
@@ -238,7 +262,7 @@ void uniform_best_packing_in_isopointal_group(
       const double new_value{basis_current.get_random_value(kT)};
       basis_current.set_value(new_value);
 
-      if (there_is_collision()) {
+      if (check_state_for_intersection(shape, sites, cell)) {
         rejections++;
         basis_current.reset_value();
       } else {

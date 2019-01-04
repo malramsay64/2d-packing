@@ -89,8 +89,16 @@ public:
 
 class ShapeInstance {
 public:
-  ShapeInstance(const Shape& shape, Site& site, ImageType& image)
-      : shape(&shape), site(&site), image(&image){};
+  ShapeInstance(
+      std::shared_ptr<const Shape> shape,
+      std::shared_ptr<const Site> site,
+      std::shared_ptr<const ImageType> image)
+      : shape(shape), site(site), image(image){};
+  ShapeInstance(const Shape& shape, const Site& site, const ImageType& image)
+      : ShapeInstance(
+            std::shared_ptr<const Shape>(&shape),
+            std::shared_ptr<const Site>(&site),
+            std::shared_ptr<const ImageType>(&image)){};
   const std::shared_ptr<const Shape> shape;
   const std::shared_ptr<const Site> site;
   const std::shared_ptr<const ImageType> image;
