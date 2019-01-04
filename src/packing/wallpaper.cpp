@@ -20,6 +20,7 @@
 #include "math.h"
 #include "random.h"
 #include "shapes.h"
+#include "util.h"
 
 /** Check whether two shape instances intersect
  */
@@ -316,100 +317,4 @@ void uniform_best_packing_in_isopointal_group(
       printf("\n");
     }
   }
-}
-
-template <typename T>
-std::vector<std::vector<T>> combinations(
-    typename std::vector<T>::iterator sites_begin,
-    typename std::vector<T>::iterator sites_end,
-    int num_picked) {
-  std::vector<std::vector<T>> site_occupation;
-
-  // Stopping condition: Only picking a single site
-  if (num_picked == 1) {
-    // Convert the 1D input array into a 2D array
-    for (auto& index = sites_begin; index != sites_end; sites_begin++) {
-      site_occupation.push_back(std::vector<T>{*index});
-    }
-    // Return all the sites as a 2D array
-    return site_occupation;
-  }
-
-  for (auto& index = sites_begin; index != sites_end; index++) {
-    // Temporary variable for each loop
-    std::vector<std::vector<T>> subsets;
-    // Wyckoff Type removed
-    subsets = combinations<T>(index + 1, sites_end, num_picked - 1);
-    // Adding the current value to the front of the vector
-    for (auto& sub : subsets) {
-      sub.insert(sub.begin(), *index);
-    }
-    // Add the subset for the current value to the end of all values
-    site_occupation.insert(site_occupation.end(), subsets.begin(), subsets.end());
-  }
-  std::unique(site_occupation.begin(), site_occupation.end());
-  return site_occupation;
-}
-
-std::vector<std::vector<WyckoffType>> generate_isopointal_groups(
-    const Shape& shape,
-    const WallpaperGroup& group,
-    std::size_t num_occupied_sites
-
-) {
-  auto console = spdlog::stdout_color_mt("console");
-
-  std::vector<WyckoffType> valid_sites;
-  // first test if the shape has the required symmetries for various sites
-  // at the moment only tests rotations & mirrors... that's all?
-  for (const WyckoffType& wyckoff : group.wyckoffs) {
-    int rotational_match{shape.rotational_symmetries % wyckoff.site_rotations};
-    int mirror_match{shape.mirrors % wyckoff.site_mirrors};
-    if (rotational_match == 0) {
-      if ((wyckoff.site_mirrors == 0) ||
-          ((mirror_match == 0) && (shape.mirrors != 0))) {
-        if (wyckoff.some_variability) {
-          console->debug("site %c is valid and variable\n", wyckoff.letter);
-        } else {
-          printf("site %c is valid\n", wyckoff.letter);
-        }
-        if (wyckoff.some_variability) {
-          // Variable sites are added with replacement, so add one for each occupied
-          // site
-          valid_sites.insert(valid_sites.end(), num_occupied_sites, wyckoff);
-        } else {
-          valid_sites.push_back(wyckoff);
-        }
-      } else {
-        console->debug(
-            "site %c does not have the required rotational symmetry\n", wyckoff.letter);
-      }
-    }
-  }
-
-  std::vector<std::vector<WyckoffType>> occupied_sites = combinations<WyckoffType>(
-      valid_sites.begin(), valid_sites.end(), num_occupied_sites);
-
-  printf("enumeration complete: in fact there were %lu ways\n", occupied_sites.size());
-
-  for (const auto& combination : occupied_sites) {
-    for (const auto& site : combination) {
-      printf(" %c", site.letter);
-      printf("\n");
-    }
-  }
-  return occupied_sites;
-}
-
-char compute_chiral_state(const std::vector<Site>& occupied_sites) {
-  int chiralsum = 0;
-  int totalsum = 0;
-  for (const Site& site : occupied_sites) {
-    chiralsum += site.get_flip_sign() * site.get_multiplicity();
-    totalsum += site.get_multiplicity();
-  }
-  if (chiralsum != 0) {
-    return (chiralsum == totalsum) ? 'c' : 's';
-  }
-  return 'a';
 }
