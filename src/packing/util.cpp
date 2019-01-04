@@ -54,7 +54,7 @@ std::vector<std::vector<T>> combinations(
     std::vector<std::vector<T>> subsets;
     // Wyckoff Type removed
     subsets = combinations<T>(index + 1, iter_end, num_picked - 1);
-    // Adding the current value to the front of each vector
+    // Adding the current value to the front of the vector
     for (auto& sub : subsets) {
       sub.insert(sub.begin(), *index);
     }

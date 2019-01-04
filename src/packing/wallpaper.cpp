@@ -29,28 +29,26 @@ bool check_for_intersection(
     const ShapeInstance& shape_b,
     const Cell& cell) {
 
-  Vect2 fcoords_b = shape_b.get_fractional_coordinates();
-
-  // a is fixed, copies of b are made to test for the clash
-  Vect2 img_fcoords_b(0, 0);
-  Vect2 coords_a = cell.fractional_to_real(shape_a.get_fractional_coordinates());
+  // a is fixed, b is moved to the periodic sites to test for the intersection
+  Vect2 fcoords_b{shape_b.get_fractional_coordinates()};
+  Vect2 img_fcoords_b{0, 0};
 
   int shells = 1;
-  // For extreme angles, only the nearest shell fails, so have to look at 2 shells.
-  // The designator for 'extreme' angle is PI/4 or 45 degrees.
+  // For extreme angles, using only the nearest shell fails, so have to look at 2
+  // shells. The designator for 'extreme' angle is PI/4 or 45 degrees.
   if (cell.angle->get_value() < M_PI_4) {
     shells = 2;
   } else if (M_2_PI - cell.angle->get_value() < M_PI_4) {
     shells = 2;
   }
 
+  // Loop over the possible periodic positions
   for (int cell_img_x = -shells; cell_img_x <= shells; cell_img_x++) {
     for (int cell_img_y = -shells; cell_img_y <= shells; cell_img_y++) {
       // Intersections with one's self are excluded
       if ((shape_a == shape_b) && (cell_img_x == 0) && (cell_img_y == 0)) {
         continue;
       }
-      //
       Vect2 coords_b = cell.fractional_to_real(
           Vect2(fcoords_b.x + cell_img_x, fcoords_b.y + cell_img_y));
       if (shape_a.intersects_with(shape_b, coords_b)) {
@@ -65,9 +63,6 @@ double calculate_packing_fraction(
     const Shape& shape,
     const Cell& cell,
     const std::vector<Site>& occupied_sites) {
-
-  auto console = spdlog::stdout_color_mt("console");
-
   int count_replicas = 0;
   for (const Site& site : occupied_sites) {
     count_replicas += site.wyckoff->multiplicity;
@@ -75,13 +70,13 @@ double calculate_packing_fraction(
 
   double packing_fraction = count_replicas * shape.area() / cell.area();
   if (std::isnan(packing_fraction)) {
-
+    auto console = spdlog::stdout_color_mt("console");
     console->warn(
         "nan encountered %f %f %f\n",
         cell.x_len->get_value(),
         cell.y_len->get_value(),
         cell.angle->get_value());
-    exit(1);
+    throw "Packing fraction calculation failed";
   }
 
   return packing_fraction;
@@ -205,7 +200,7 @@ bool check_state_for_intersection(
   return false;
 }
 
-void uniform_best_packing_in_isopointal_group(
+void uniform_best_packing(
     Shape& shape,
     WallpaperGroup& group,
     const std::size_t num_occupied_sites,
@@ -238,13 +233,10 @@ void uniform_best_packing_in_isopointal_group(
       generate_isopointal_groups(shape, group, num_occupied_sites);
 
   for (std::vector<WyckoffType>& occupied_site : occupied_sites) {
-
     std::vector<Site> sites =
         initialise_structure(shape, group, cell, occupied_site, basis, max_step_size);
     FlipBasis flip_basis{sites};
-
     packing_fraction = calculate_packing_fraction(shape, cell, sites);
-
     console->info("Initial packing fraction = %f\n", packing_fraction);
 
     while (monte_carlo_steps < max_steps) {
