@@ -301,5 +301,9 @@ void export_Shape(py::module& m) {
       .def("plot", &Shape::plot)
       .def("angular_step", &Shape::angular_step)
       .def("get_point", &Shape::get_point)
-      .def("area", &Shape::area);
+      .def("area", &Shape::area)
+      .def_readonly("name", &Shape::name)
+      .def_readonly("radial_points", &Shape::radial_points)
+      .def_readonly("rotational_symmetries", &Shape::rotational_symmetries)
+      .def_readonly("mirrors", &Shape::mirrors);
 }
