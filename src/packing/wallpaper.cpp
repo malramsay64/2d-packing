@@ -294,17 +294,18 @@ void uniform_best_packing_in_isopointal_group(
   }
 }
 
-std::vector<std::vector<WyckoffType>> combinations(
-    std::vector<WyckoffType>::iterator sites_begin,
-    std::vector<WyckoffType>::iterator sites_end,
+template <typename T>
+std::vector<std::vector<T>> combinations(
+    typename std::vector<T>::iterator sites_begin,
+    typename std::vector<T>::iterator sites_end,
     int num_picked) {
-  std::vector<std::vector<WyckoffType>> site_occupation;
+  std::vector<std::vector<T>> site_occupation;
 
   // Stopping condition: Only picking a single site
   if (num_picked == 1) {
     // Convert the 1D input array into a 2D array
     for (auto& index = sites_begin; index != sites_end; sites_begin++) {
-      site_occupation.push_back(std::vector<WyckoffType>{*index});
+      site_occupation.push_back(std::vector<T>{*index});
     }
     // Return all the sites as a 2D array
     return site_occupation;
@@ -312,9 +313,9 @@ std::vector<std::vector<WyckoffType>> combinations(
 
   for (auto& index = sites_begin; index != sites_end; index++) {
     // Temporary variable for each loop
-    std::vector<std::vector<WyckoffType>> subsets;
+    std::vector<std::vector<T>> subsets;
     // Wyckoff Type removed
-    subsets = combinations(index + 1, sites_end, num_picked - 1);
+    subsets = combinations<T>(index + 1, sites_end, num_picked - 1);
     // Adding the current value to the front of the vector
     for (auto& sub : subsets) {
       sub.insert(sub.begin(), *index);
@@ -362,8 +363,8 @@ std::vector<std::vector<WyckoffType>> generate_isopointal_groups(
     }
   }
 
-  std::vector<std::vector<WyckoffType>> occupied_sites =
-      combinations(valid_sites.begin(), valid_sites.end(), num_occupied_sites);
+  std::vector<std::vector<WyckoffType>> occupied_sites = combinations<WyckoffType>(
+      valid_sites.begin(), valid_sites.end(), num_occupied_sites);
 
   printf("enumeration complete: in fact there were %lu ways\n", occupied_sites.size());
 
