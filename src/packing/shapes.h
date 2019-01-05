@@ -17,6 +17,11 @@
 #ifndef SHAPES_H
 #define SHAPES_H
 
+/* \class Shape
+ *
+ * Defines a shape from a set of radially defined points.
+ *
+ */
 class Shape {
 public:
   Shape(
@@ -25,6 +30,7 @@ public:
       const int rotational_symmetries,
       const int mirrors);
   Shape(const std::string& name, const std::vector<double>& radial_points);
+
   std::string name;
   std::vector<double> radial_points;
   int rotational_symmetries;
@@ -47,7 +53,7 @@ public:
 
 /*! \enum mirror
  *
- *  Detailed description
+ *  The type of mirror symmetry a SymmetryTransform can have.
  */
 enum mirror {
   m0 = 0,
@@ -60,48 +66,92 @@ enum mirror {
   m300 = 300
 };
 
-class ImageType {
+/** \class SymmetryTransform
+ *
+ * Define the transformations of particle positions for a WyckoffSite.
+ *
+ * A collection of operators which define the symmetry transformations.
+ *
+ */
+class SymmetryTransform {
 public:
-  ImageType(Vect3 x_coeffs, Vect3 y_coeffs, double rotation_offset);
+  SymmetryTransform(Vect3 x_coeffs, Vect3 y_coeffs, double rotation_offset);
   Vect3 x_coeffs;
   Vect3 y_coeffs;
   double rotation_offset;
   bool flipped;
   enum mirror site_mirror;
 
-  bool operator==(const ImageType& other) const;
+  bool operator==(const SymmetryTransform& other) const;
 
   Vect2 real_to_fractional(const Vect3& real) const;
-  Vect2 real_to_fractional(const Site& site) const;
 };
 
-class WyckoffType {
+/** \class WyckoffSite
+ *
+ * A class which defines a set of Wyckoff parameters.
+ *
+ * Each set of Wyckoff paramters defines a set of properties, including the positions of
+ * particles in Wyckoff Site. A Wyckoff site can have multiple positions, indicated by
+ * the muiltiplicity. Each of these positions have some symmetry relationship to each
+ * other, either rotaional or mirror.
+ *
+ * Each Wyckoff instance is labelled by a letter which is an identifier from the
+ * Crystallographic Database.
+ *
+ * A WyckoffSite instance only describes the transformations for taking a position and
+ * obtaining the symmetry related positions.
+ *
+ */
+class WyckoffSite {
 public:
-  int multiplicity;
   char letter;
-  int some_variability;
-  int site_rotations;
-  int site_mirrors;
-  std::vector<ImageType> image;
+  int variability;
+  int rotations;
+  int mirrors;
+  std::vector<SymmetryTransform> symmetries;
 
-  bool operator==(const WyckoffType& other) const;
+  bool operator==(const WyckoffSite& other) const;
+
+  std::size_t multiplicity() const;
+
+  bool vary_x() const;
+  bool vary_y() const;
+  int mirror_type() const;
 };
 
+/** \class ShapeInstance
+ *
+ * A specific instance of a Shape object which has coordinates and orientation.
+ *
+ * To define the boundary of a shape in cartesian coordinates, a lot of information is
+ * required.
+ *  - The actual Shape class itself, which radially defines the positions of
+ *  particles.
+ *  - The OccupiedSite, which defines the WyckoffSite and the coordinates of the site
+ *  - The SymmetryTransform, defining which of the symmetry transforms of the
+ *  WyckoffSite this particular shape occupies.
+ *
+ */
 class ShapeInstance {
+  const std::shared_ptr<const Shape> shape;
+  const std::shared_ptr<const OccupiedSite> site;
+  const std::shared_ptr<const SymmetryTransform> symmetry_transform;
+
 public:
   ShapeInstance(
       std::shared_ptr<const Shape> shape,
-      std::shared_ptr<const Site> site,
-      std::shared_ptr<const ImageType> image)
-      : shape(shape), site(site), image(image){};
-  ShapeInstance(const Shape& shape, const Site& site, const ImageType& image)
+      std::shared_ptr<const OccupiedSite> site,
+      std::shared_ptr<const SymmetryTransform> symmetry_transform)
+      : shape(shape), site(site), symmetry_transform(symmetry_transform){};
+  ShapeInstance(
+      const Shape& shape,
+      const OccupiedSite& site,
+      const SymmetryTransform& symmetry_transform)
       : ShapeInstance(
             std::shared_ptr<const Shape>(&shape),
-            std::shared_ptr<const Site>(&site),
-            std::shared_ptr<const ImageType>(&image)){};
-  const std::shared_ptr<const Shape> shape;
-  const std::shared_ptr<const Site> site;
-  const std::shared_ptr<const ImageType> image;
+            std::shared_ptr<const OccupiedSite>(&site),
+            std::shared_ptr<const SymmetryTransform>(&symmetry_transform)){};
 
   bool operator==(const ShapeInstance& other) const;
 
@@ -114,26 +164,6 @@ public:
   std::pair<double, double>
   compute_incline(const ShapeInstance& other, const Vect2& position_other) const;
 };
-
-class WallpaperGroup {
-public:
-  WallpaperGroup(std::string label, std::vector<WyckoffType> wyckoffs);
-  const std::string label;
-  const bool a_b_equal = false;
-  const bool hexagonal = false;
-  const bool rectangular = false;
-  int num_symmetries = 0;
-  std::vector<WyckoffType> wyckoffs;
-  int num_wyckoffs;
-};
-
-std::size_t group_multiplicity(const std::vector<WyckoffType>& occupied_sites);
-
-std::string create_filename(
-    const Shape& shape,
-    const WallpaperGroup& group,
-    const std::string site_list,
-    const std::string& directory);
 
 void export_Shape(pybind11::module& m);
 

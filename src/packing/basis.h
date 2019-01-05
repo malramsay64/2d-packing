@@ -16,8 +16,8 @@
 #ifndef BASIS_H
 #define BASIS_H
 
-// Forward declaration of WyckoffType
-class WyckoffType;
+// Forward declaration of WyckoffSite
+class WyckoffSite;
 
 class Basis {
 protected:
@@ -45,9 +45,9 @@ public:
   double get_random_value(const double kT) const;
 };
 
-class Site {
+class OccupiedSite {
 public:
-  std::shared_ptr<WyckoffType> wyckoff;
+  std::shared_ptr<WyckoffSite> wyckoff;
   std::shared_ptr<Basis> x;
   std::shared_ptr<Basis> y;
   std::shared_ptr<Basis> angle;
@@ -131,13 +131,13 @@ public:
 
 class FlipBasis : public Basis {
 private:
-  std::shared_ptr<std::vector<Site>> occupied_sites;
+  std::shared_ptr<std::vector<OccupiedSite>> occupied_sites;
   int value_previous;
 
 public:
-  FlipBasis(std::vector<Site>& occupied_sites)
+  FlipBasis(std::vector<OccupiedSite>& occupied_sites)
       : Basis(0, 0, occupied_sites.size()),
-        occupied_sites(std::shared_ptr<std::vector<Site>>(&occupied_sites)){};
+        occupied_sites(std::shared_ptr<std::vector<OccupiedSite>>(&occupied_sites)){};
 
   double get_random_value(const double kT) const;
   void set_value(double new_value);

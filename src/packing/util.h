@@ -12,7 +12,7 @@
 #ifndef UTIL_H
 #define UTIL_H
 
-std::size_t calculate_count_replicas(const std::vector<Site>& sites);
+std::size_t calculate_shape_replicas(const std::vector<OccupiedSite>& sites);
 
 template <typename T>
 std::vector<std::vector<T>> combinations(

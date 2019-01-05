@@ -121,14 +121,14 @@ std::vector<Vect2> Shape::generate_position_cache_full(const Vect2& position) co
   return position_cache;
 }
 
-bool ImageType::operator==(const ImageType& other) const {
+bool SymmetryTransform::operator==(const SymmetryTransform& other) const {
   return (
       this->x_coeffs == other.x_coeffs && this->y_coeffs == other.y_coeffs &&
       this->rotation_offset == other.rotation_offset &&
       this->site_mirror == other.site_mirror);
 }
 
-Vect2 ImageType::real_to_fractional(const Vect3& real) const {
+Vect2 SymmetryTransform::real_to_fractional(const Vect3& real) const {
   /* converts site variables and wyckoff site coefficients into the location
    * of the actual wyckoff image in fractional coordinates */
   Vect2 v(0, 0);
@@ -137,33 +137,39 @@ Vect2 ImageType::real_to_fractional(const Vect3& real) const {
   return positive_modulo(v, 1.);
 }
 
-Vect2 ImageType::real_to_fractional(const Site& site) const {
-  /* converts site variables and wyckoff site coefficients into the location
-   * of the actual wyckoff image in fractional coordinates */
-  Vect2 v(0, 0);
-  v.x = this->x_coeffs.x * site.x->get_value() +
-        this->x_coeffs.y * site.y->get_value() + this->x_coeffs.z;
-  v.y = this->y_coeffs.x * site.x->get_value() +
-        this->y_coeffs.y * site.y->get_value() + this->y_coeffs.z;
-  return positive_modulo(v, 1.);
+bool WyckoffSite::operator==(const WyckoffSite& other) const {
+  return (
+      this->letter == other.letter && this->variability == other.variability &&
+      this->rotations == other.rotations && this->mirrors == other.mirrors &&
+      this->symmetries == other.symmetries);
 }
 
-bool WyckoffType::operator==(const WyckoffType& other) const {
-  return (
-      this->multiplicity == other.multiplicity && this->letter == other.letter &&
-      this->some_variability == other.some_variability &&
-      this->site_rotations == other.site_rotations &&
-      this->site_mirrors == other.site_mirrors && this->image == other.image);
+std::size_t WyckoffSite::multiplicity() const {
+  return this->symmetries.size();
+}
+
+bool WyckoffSite::vary_x() const {
+  // If the first symmetry can vary x, all of them can
+  return fabs(this->symmetries[0].x_coeffs.x) > 0.1;
+}
+
+bool WyckoffSite::vary_y() const {
+  // If the first symmetry can vary x, all of them can
+  return fabs(this->symmetries[0].y_coeffs.y) > 0.1;
+}
+
+int WyckoffSite::mirror_type() const {
+  return this->symmetries[0].site_mirror;
 }
 
 bool ShapeInstance::operator==(const ShapeInstance& other) const {
   return (
       this->shape == other.shape && this->site == other.site &&
-      this->image == other.image);
+      this->symmetry_transform == other.symmetry_transform);
 }
 
 Vect2 ShapeInstance::get_fractional_coordinates() const {
-  return this->image->real_to_fractional(*this->site);
+  return this->symmetry_transform->real_to_fractional(this->site->site_variables());
 }
 
 Vect2 ShapeInstance::get_real_coordinates() const {
@@ -175,11 +181,11 @@ double ShapeInstance::get_angle() const {
 }
 
 double ShapeInstance::get_rotational_offset() const {
-  return this->image->rotation_offset;
+  return this->symmetry_transform->rotation_offset;
 }
 
 bool ShapeInstance::get_flipped() const {
-  return this->image->flipped ^ this->site->flip_site;
+  return this->symmetry_transform->flipped ^ this->site->flip_site;
 }
 
 std::pair<double, double> ShapeInstance::compute_incline(
@@ -265,26 +271,6 @@ bool ShapeInstance::intersects_with(
     }
   }
   return false;
-}
-
-std::size_t group_multiplicity(const std::vector<Site>& occupied_sites) {
-  std::size_t total_multiplicity = 0;
-  for (const Site& site : occupied_sites) {
-    total_multiplicity = site.wyckoff->multiplicity;
-  }
-  return total_multiplicity;
-}
-
-std::string create_filename(
-    const Shape& shape,
-    const WallpaperGroup& group,
-    const std::string site_list,
-    const std::string& directory) {
-  std::stringstream stream_filename;
-  stream_filename << directory << "/solution_" << shape.name << "_" << group.label
-                  << "_" << site_list << "_" << std::fixed << std::setprecision(3)
-                  << shape.shape_var << ".svg";
-  return stream_filename.str();
 }
 
 // Export the shape class to python uisng pybind11

@@ -20,7 +20,7 @@ class IsopointalGroup {
   std::vector<WyckoffSite> occupied_sites;
 };
 
-std::vector<std::vector<WyckoffType>> generate_isopointal_groups(
+std::vector<IsopointalGroup> generate_isopointal_groups(
     const Shape& shape,
     const WallpaperGroup& group,
     std::size_t num_occupied_sites);
