@@ -4,20 +4,26 @@
  *
  * Distributed under terms of the MIT license.
  */
+#include <string>
 
 #include "shapes.h"
+#include "wallpaper.h"
 
 #ifndef ISOPOINTAL_H
 #define ISOPOINTAL_H
 
-class WyckoffSite {
-  double x;
-  double y;
-  double theta;
-};
-
+/** \class IsopointalGroup
+ *
+ * An IsopointalGroup is a collection
+ */
 class IsopointalGroup {
-  std::vector<WyckoffSite> occupied_sites;
+public:
+  std::vector<WyckoffSite> wyckoff_sites;
+
+  IsopointalGroup(std::vector<WyckoffSite>& sites) : wyckoff_sites(sites){};
+
+  std::size_t group_multiplicity() const;
+  std::string group_string() const;
 };
 
 std::vector<IsopointalGroup> generate_isopointal_groups(

@@ -7,19 +7,37 @@
 
 #include "isopointal.h"
 
+#include <sstream>
+
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/spdlog.h>
 
 #include "util.h"
 
-std::vector<std::vector<WyckoffType>> generate_isopointal_groups(
+std::string IsopointalGroup::group_string() const {
+  std::stringstream ss;
+  for (const auto& site : this->wyckoff_sites) {
+    ss << site.letter;
+  }
+  return ss.str();
+}
+
+std::size_t IsopointalGroup::group_multiplicity() const {
+  std::size_t multiplicity{0};
+  for (const WyckoffSite& site : this->wyckoff_sites) {
+    multiplicity += site.multiplicity;
+  }
+  return multiplicity;
+}
+
+std::vector<IsopointalGroup> generate_isopointal_groups(
     const Shape& shape,
     const WallpaperGroup& group,
     std::size_t num_occupied_sites) {
   auto console = spdlog::stdout_color_mt("console");
 
-  std::vector<WyckoffType> valid_sites;
-  for (const WyckoffType& wyckoff : group.wyckoffs) {
+  std::vector<WyckoffSite> valid_sites;
+  for (const WyckoffSite& wyckoff : group.wyckoff_sites) {
     // first test if the shape has the required symmetries for various sites
     // at the moment only tests rotations & mirrors... that's all?
     int rotational_match{shape.rotational_symmetries % wyckoff.site_rotations};
@@ -46,17 +64,16 @@ std::vector<std::vector<WyckoffType>> generate_isopointal_groups(
     }
   }
 
-  std::vector<std::vector<WyckoffType>> occupied_sites = combinations<WyckoffType>(
+  std::vector<std::vector<WyckoffSite>> occupied_sites = combinations<WyckoffSite>(
       valid_sites.begin(), valid_sites.end(), num_occupied_sites);
 
   console->info(
       "enumeration complete: in fact there were %lu ways\n", occupied_sites.size());
 
-  for (const auto& combination : occupied_sites) {
-    for (const auto& site : combination) {
-      console->debug(" %c", site.letter);
-    }
-    console->debug("\n");
+  std::vector<IsopointalGroup> isopointal_groups;
+  for (auto& combination : occupied_sites) {
+    isopointal_groups.push_back(IsopointalGroup(combination));
+    console->debug("%s\n", isopointal_groups.back().group_string());
   }
-  return occupied_sites;
+  return isopointal_groups;
 }
