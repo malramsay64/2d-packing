@@ -11,18 +11,18 @@
 
 #include "shapes.h"
 
-std::size_t calculate_count_replicas(const std::vector<Site>& occupied_sites) {
+std::size_t calculate_shape_replicas(const std::vector<OccupiedSite>& occupied_sites) {
   std::size_t replicas{0};
-  for (const Site& site : occupied_sites) {
+  for (const OccupiedSite& site : occupied_sites) {
     replicas += site.get_multiplicity();
   }
   return replicas;
 }
 
-char compute_chiral_state(const std::vector<Site>& occupied_sites) {
+char compute_chiral_state(const std::vector<OccupiedSite>& occupied_sites) {
   int chiralsum{0};
   std::size_t totalsum{0};
-  for (const Site& site : occupied_sites) {
+  for (const OccupiedSite& site : occupied_sites) {
     chiralsum += site.get_flip_sign() * site.get_multiplicity();
     totalsum += site.get_multiplicity();
   }

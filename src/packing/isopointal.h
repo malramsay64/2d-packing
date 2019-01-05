@@ -7,10 +7,12 @@
 #include <string>
 
 #include "shapes.h"
-#include "wallpaper.h"
 
 #ifndef ISOPOINTAL_H
 #define ISOPOINTAL_H
+
+// Forward definition of WallpaperGroup
+class WallpaperGroup;
 
 /** \class IsopointalGroup
  *

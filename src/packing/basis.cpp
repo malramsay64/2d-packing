@@ -11,6 +11,7 @@
 #include <cmath>
 #include <string>
 
+#include "isopointal.h"
 #include "shapes.h"
 
 namespace py = pybind11;
@@ -40,20 +41,20 @@ double Basis::get_random_value(const double kT) const {
   return this->value + this->step_size * this->value_range() * (fluke() - 0.5);
 }
 
-Vect3 Site::site_variables() const {
+Vect3 OccupiedSite::site_variables() const {
   return Vect3(this->x->get_value(), this->y->get_value(), this->angle->get_value());
 }
 
-Vect2 Site::get_position() const {
+Vect2 OccupiedSite::get_position() const {
   return Vect2(this->x->get_value(), this->y->get_value());
 }
 
-int Site::get_flip_sign() const {
+int OccupiedSite::get_flip_sign() const {
   return this->flip_site ? 1 : -1;
 }
 
-int Site::get_multiplicity() const {
-  return this->wyckoff->multiplicity;
+int OccupiedSite::get_multiplicity() const {
+  return this->wyckoff->multiplicity();
 }
 
 double Cell::area() const {
