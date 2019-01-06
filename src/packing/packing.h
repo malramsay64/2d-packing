@@ -60,27 +60,9 @@ public:
   compute_incline(const ShapeInstance& other, const Vect2& position_other) const;
 };
 
-std::vector<OccupiedSite> initialise_structure(
-    const Shape& shape,
-    const IsopointalGroup& isopointal_group,
-    const WallpaperGroup& group,
-    Cell& cell,
-    std::vector<Basis>& basis,
-    const double step_size);
-
-double calculate_packing_fraction(
-    const Shape& shape,
-    const Cell& cell,
-    const std::vector<OccupiedSite>& occupied_sites);
-
 bool check_for_intersection(
     const ShapeInstance& shape_a,
     const ShapeInstance& shape_b,
-    const Cell& cell);
-
-bool check_state_for_intersection(
-    const Shape& shape,
-    const std::vector<OccupiedSite>& occupied_sites,
     const Cell& cell);
 
 std::size_t calculate_shape_replicas(const std::vector<OccupiedSite>& sites);

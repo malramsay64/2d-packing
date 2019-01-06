@@ -92,8 +92,8 @@ std::vector<IsopointalGroup> generate_isopointal_groups(
   for (const WyckoffSite& wyckoff : group.wyckoff_sites) {
     // first test if the shape has the required symmetries for various sites
     // at the moment only tests rotations & mirrors... that's all?
-    int rotational_match{shape.rotational_symmetries % wyckoff.rotations};
-    int mirror_match{shape.mirrors % wyckoff.mirrors};
+    int rotational_match = shape.rotational_symmetries % wyckoff.rotations;
+    int mirror_match = shape.mirrors % wyckoff.mirrors;
     if (rotational_match == 0) {
       if ((wyckoff.mirrors == 0) || ((mirror_match == 0) && (shape.mirrors != 0))) {
         if (wyckoff.variability) {

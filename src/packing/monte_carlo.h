@@ -82,6 +82,12 @@ PackedState initialise_structure(
     const WallpaperGroup& wallpaper,
     const double step_size);
 
+PackedState uniform_best_packing_in_isopointal_group(
+    const Shape& shape,
+    const WallpaperGroup& wallpaper,
+    const IsopointalGroup& isopointal,
+    const MCVars& mc_vars);
+
 void export_PackedState(pybind11::module& m);
 
 #endif /* !MONTE_CARLO_H */

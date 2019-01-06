@@ -26,14 +26,14 @@ public:
   Shape(
       const std::string& name,
       const std::vector<double>& radial_points,
-      const int rotational_symmetries,
-      const int mirrors);
+      const std::size_t rotational_symmetries,
+      const std::size_t mirrors);
   Shape(const std::string& name, const std::vector<double>& radial_points);
 
   std::string name;
   std::vector<double> radial_points;
-  int rotational_symmetries;
-  int mirrors;
+  std::size_t rotational_symmetries;
+  std::size_t mirrors;
   double min_radius;
   double max_radius;
   double shape_var = 0;

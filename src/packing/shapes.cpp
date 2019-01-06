@@ -23,8 +23,8 @@ namespace py = pybind11;
 Shape::Shape(
     const std::string& name,
     const std::vector<double>& radial_points,
-    const int rotational_symmetries,
-    const int mirrors)
+    const std::size_t rotational_symmetries,
+    const std::size_t mirrors)
     : name(name), radial_points(radial_points),
       rotational_symmetries(rotational_symmetries), mirrors(mirrors) {
   auto min_max = std::minmax_element(radial_points.begin(), radial_points.end());
@@ -122,7 +122,11 @@ void export_Shape(py::module& m) {
   py::class_<Shape> shape(m, "Shape");
   shape
       .def(
-          py::init<const std::string&, const std::vector<double>&, int, int>(),
+          py::init<
+              const std::string&,
+              const std::vector<double>&,
+              std::size_t,
+              std::size_t>(),
           py::arg("name"),
           py::arg("radial_points"),
           py::arg("rotational_symmetries") = 0,

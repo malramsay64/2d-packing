@@ -10,6 +10,7 @@
 #define FLUKE_H
 
 double fluke();
+
 void export_fluke(pybind11::module& m);
 
 #endif /* FLUKE_H */

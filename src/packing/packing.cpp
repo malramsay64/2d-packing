@@ -144,32 +144,3 @@ bool check_for_intersection(
   }
   return false;
 }
-
-bool check_state_for_intersection(
-    const Shape& shape,
-    const std::vector<OccupiedSite>& occupied_sites,
-    const Cell& cell) {
-  // Loop over all the occupied sites
-  for (auto site_one = occupied_sites.begin(); site_one != occupied_sites.end();
-       site_one++) {
-    // Loop over all symmetries for the first occupied site
-    for (const auto& image_one : site_one->wyckoff->symmetries) {
-      const ShapeInstance shape_one{shape, *site_one, image_one};
-      // Loop over all occupied sites which haven't already been compared with site_one
-      for (auto site_two = std::next(site_one); site_two != occupied_sites.end();
-           site_two++) {
-        // Loop over all symmetries for the second occupied site
-        for (const auto& image_two : site_two->wyckoff->symmetries) {
-          const ShapeInstance shape_two{shape, *site_two, image_two};
-          /* Finally perform the comparison of shapes here */
-          if (check_for_intersection(shape_one, shape_two, cell)) {
-            // If the two shapes intersect, return true, breaking out of the loop.
-            return true;
-          }
-        }
-      }
-    }
-  }
-  // Should there be no intersections between any shapes, return false
-  return false;
-}
