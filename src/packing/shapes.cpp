@@ -8,7 +8,6 @@
 #include "shapes.h"
 
 #include <algorithm>
-#include <cassert>
 #include <cmath>
 #include <fstream>
 #include <iomanip>
@@ -17,7 +16,6 @@
 
 #include <pybind11/stl.h>
 
-#include "geometry.h"
 #include "math.h"
 
 namespace py = pybind11;

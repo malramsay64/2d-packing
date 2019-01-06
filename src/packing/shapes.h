@@ -11,7 +11,6 @@
 
 #include <pybind11/pybind11.h>
 
-#include "basis.h"
 #include "math.h"
 
 #ifndef SHAPES_H

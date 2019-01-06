@@ -28,13 +28,13 @@ struct MCVars {
 };
 
 class PackedState {
+public:
   const std::shared_ptr<const WallpaperGroup> wallpaper;
   const std::shared_ptr<const Shape> shape;
   const std::shared_ptr<Cell> cell;
   const std::shared_ptr<std::vector<OccupiedSite>> occupied_sites;
   const std::shared_ptr<std::vector<Basis>> basis;
 
-public:
   PackedState(
       std::shared_ptr<const WallpaperGroup> wallpaper,
       std::shared_ptr<const Shape> shape,
@@ -66,6 +66,12 @@ public:
       : PackedState(wallpaper, shape, cell, occupied_sites, std::vector<Basis>()){};
 
   std::string str() const;
+  double packing_fraction() const;
+  bool check_intersection() const;
+  std::size_t num_shapes() const;
+
+  std::vector<double> save_basis() const;
+  void load_basis(const std::vector<double>&);
 
   friend std::ostream& operator<<(std::ostream& os, const PackedState& packed_state);
 };

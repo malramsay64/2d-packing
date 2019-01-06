@@ -11,8 +11,6 @@
 
 #include <pybind11/pybind11.h>
 
-#include "basis.h"
-
 #ifndef UTIL_H
 #define UTIL_H
 
@@ -23,8 +21,6 @@ template <typename T> void uniqueify(std::vector<T>& v) {
   }
   v.erase(end, v.end());
 }
-
-std::size_t calculate_shape_replicas(const std::vector<OccupiedSite>& sites);
 
 template <typename T>
 std::vector<std::vector<T>> combinations_iter(
