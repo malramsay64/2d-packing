@@ -51,11 +51,9 @@ public:
   std::shared_ptr<Basis> x;
   std::shared_ptr<Basis> y;
   std::shared_ptr<Basis> angle;
-  bool flip_site = false;
 
   Vect3 site_variables() const;
   Vect2 get_position() const;
-  int get_flip_sign() const;
   int get_multiplicity() const;
 
   std::string str() const;
@@ -130,21 +128,6 @@ public:
       : Basis(value, min_val, max_val), mirrors(mirrors){};
 
   double get_random_value(const double kT) const;
-};
-
-class FlipBasis : public Basis {
-private:
-  std::shared_ptr<std::vector<OccupiedSite>> occupied_sites;
-  int value_previous;
-
-public:
-  FlipBasis(std::vector<OccupiedSite>& occupied_sites)
-      : Basis(0, 0, occupied_sites.size()),
-        occupied_sites(std::shared_ptr<std::vector<OccupiedSite>>(&occupied_sites)){};
-
-  double get_random_value(const double kT) const;
-  void set_value(double new_value);
-  void reset_value();
 };
 
 void export_Basis(pybind11::module& m);

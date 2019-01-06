@@ -52,10 +52,6 @@ Vect2 OccupiedSite::get_position() const {
   return Vect2(this->x->get_value(), this->y->get_value());
 }
 
-int OccupiedSite::get_flip_sign() const {
-  return this->flip_site ? 1 : -1;
-}
-
 int OccupiedSite::get_multiplicity() const {
   return this->wyckoff->multiplicity();
 }
@@ -136,24 +132,6 @@ double MirrorBasis::get_random_value(const double kT) const {
   }
   /* turn it 180 degrees so that all mirror planes are preserved */
   return positive_modulo(this->value + M_PI, M_2_PI);
-}
-
-double FlipBasis::get_random_value(const double kT) const {
-  return rand() % occupied_sites->size();
-}
-
-void FlipBasis::set_value(double new_value) {
-  this->value_previous = static_cast<int>(std::round(new_value));
-  this->occupied_sites->at(this->value_previous).flip_site ^= 1;
-}
-
-void FlipBasis::reset_value() {
-  if (this->value_previous == -1) {
-    return;
-  }
-  this->occupied_sites->at(this->value_previous).flip_site ^= 1;
-  // Only allow the reset_value to occur once
-  this->value_previous = -1;
 }
 
 void export_Basis(py::module& m) {

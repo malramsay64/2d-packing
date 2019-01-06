@@ -86,7 +86,6 @@ std::vector<Vect2> Shape::generate_position_cache(
 
   const double angular_step = M_2_PI / resolution;
   int angle_int = static_cast<int>(std::round(angle_to_shape / angular_step));
-  // Flipping reverses the direction of the points
 
   for (int index = -resolution / 4; index <= (resolution / 4); index++) {
     int compare_index{angle_int + index};
@@ -107,7 +106,6 @@ std::vector<Vect2> Shape::generate_position_cache_full(const Vect2& position) co
   position_cache.reserve(resolution / 2 + 1);
 
   const double angular_step{M_2_PI / resolution};
-  // Flipping reverses the direction of the points
 
   for (int index = -resolution / 2; index <= (resolution / 2); index++) {
     // Change base to angle between shapes

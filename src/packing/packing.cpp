@@ -32,10 +32,6 @@ double ShapeInstance::get_rotational_offset() const {
   return this->symmetry_transform->rotation_offset;
 }
 
-bool ShapeInstance::get_flipped() const {
-  return this->symmetry_transform->flipped ^ this->site->flip_site;
-}
-
 std::pair<double, double> ShapeInstance::compute_incline(
     const ShapeInstance& other,
     const Vect2& position_other) const {
@@ -58,23 +54,14 @@ std::pair<double, double> ShapeInstance::compute_incline(
   // Set reverse incline
   double b_to_a_incline{a_to_b_incline + M_PI};
 
-  // Deal with the flipping of shapes
-  if (this->get_flipped()) {
-    a_to_b_incline = M_2_PI - a_to_b_incline;
-  }
-  if (other.get_flipped()) {
-    b_to_a_incline = M_2_PI - b_to_a_incline;
-  }
-
   /* now add in the rotation due to the orientation parameters */
-  /* This is unaffected by the flip states */
   a_to_b_incline += this->get_angle();
   b_to_a_incline += other.get_angle();
 
   /* now add in the rotation due to the rotation of this image wrt the other
    * images of the same wyckoff */
-  a_to_b_incline += std::pow(-1, this->get_flipped()) * this->get_rotational_offset();
-  b_to_a_incline += std::pow(-1, other.get_flipped()) * other.get_rotational_offset();
+  a_to_b_incline += this->get_rotational_offset();
+  b_to_a_incline += other.get_rotational_offset();
 
   a_to_b_incline = positive_modulo(a_to_b_incline, M_2_PI);
   b_to_a_incline = positive_modulo(b_to_a_incline, M_2_PI);

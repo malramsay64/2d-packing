@@ -43,7 +43,6 @@ public:
   Vect3 x_coeffs;
   Vect3 y_coeffs;
   double rotation_offset;
-  bool flipped;
   enum mirror site_mirror;
 
   bool operator==(const SymmetryTransform& other) const;

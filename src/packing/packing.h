@@ -55,7 +55,6 @@ public:
   Vect2 get_real_coordinates() const;
   double get_angle() const;
   double get_rotational_offset() const;
-  bool get_flipped() const;
   bool intersects_with(const ShapeInstance& other, const Vect2& coords_other) const;
   std::pair<double, double>
   compute_incline(const ShapeInstance& other, const Vect2& position_other) const;

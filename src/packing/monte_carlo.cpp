@@ -177,7 +177,6 @@ PackedState uniform_best_packing_in_isopointal_group(
     const MCVars& mc_vars) {
   auto console = spdlog::stdout_color_mt("console");
   std::vector<double> best_values;
-  std::vector<bool> best_flips;
 
   std::size_t count_replicas{0};
 
@@ -193,7 +192,6 @@ PackedState uniform_best_packing_in_isopointal_group(
 
   PackedState sim_state =
       initialise_structure(shape, isopointal, wallpaper, mc_vars.max_step_size);
-  FlipBasis flip_basis{*sim_state.occupied_sites};
 
   packing = sim_state.packing_fraction();
   console->info("Initial packing fraction = %f\n", packing);
@@ -203,12 +201,6 @@ PackedState uniform_best_packing_in_isopointal_group(
 
     std::size_t vary_index{rand() % sim_state.basis->size()};
     Basis& basis_current = sim_state.basis->at(vary_index);
-
-    /* Occasionally allow flips */
-    if (monte_carlo_steps % 100) {
-      const double flip_index{flip_basis.get_random_value(kT)};
-      flip_basis.set_value(flip_index);
-    }
 
     packing_prev = packing;
     const double new_value{basis_current.get_random_value(kT)};
@@ -223,17 +215,12 @@ PackedState uniform_best_packing_in_isopointal_group(
           temperature_distribution(packing_prev, packing, kT, count_replicas)) {
         rejections++;
         basis_current.reset_value();
-        flip_basis.reset_value();
         packing = packing_prev;
       }
 
+      /* best packing seen yet ... save data */
       if (packing > packing_max) {
         best_values = sim_state.save_basis();
-        /* best packing seen yet ... save data */
-        best_flips = std::vector<bool>();
-        for (const OccupiedSite& site : *sim_state.occupied_sites) {
-          best_flips.push_back(site.flip_site);
-        }
       }
 
       if (monte_carlo_steps % 500 == 0) {
