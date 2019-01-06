@@ -13,6 +13,7 @@
 #include <string>
 #include <vector>
 
+#include <pybind11/pybind11.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/spdlog.h>
 
@@ -21,6 +22,8 @@
 #include "math.h"
 #include "shapes.h"
 #include "util.h"
+
+namespace py = pybind11;
 
 bool SymmetryTransform::operator==(const SymmetryTransform& other) const {
   return (
@@ -124,4 +127,76 @@ std::vector<IsopointalGroup> generate_isopointal_groups(
     console->debug("%s\n", isopointal_groups.back().group_string());
   }
   return isopointal_groups;
+}
+
+void export_Mirror(py::module& m) {
+  py::enum_<Mirror>(m, "Mirror", py::arithmetic())
+      .value("m0", Mirror::m0)
+      .value("m30", Mirror::m30)
+      .value("m45", Mirror::m45)
+      .value("m60", Mirror::m60)
+      .value("m90", Mirror::m90)
+      .value("m135", Mirror::m135)
+      .value("m300", Mirror::m300)
+      .value("m330", Mirror::m330)
+      .export_values();
+}
+
+void export_SymmetryTransform(py::module& m) {
+  py::class_<SymmetryTransform> symmetry_transform(m, "SymmetryTransform");
+  symmetry_transform
+      .def(
+          py::init<const Vect3&, const Vect3&, const double, Mirror>(),
+          py::arg("x_coeffs"),
+          py::arg("y_coeffs"),
+          py::arg("rotation_offset"),
+          py::arg("mirror"))
+      .def("real_to_fractional", &SymmetryTransform::real_to_fractional);
+}
+
+void export_WyckoffSite(py::module& m) {
+  py::class_<WyckoffSite> wyckoff_site(m, "WyckoffSite");
+  wyckoff_site
+      .def(
+          py::init<
+              const char,
+              const std::vector<SymmetryTransform>&,
+              const std::size_t,
+              const std::size_t,
+              const std::size_t>(),
+          py::arg("letter"),
+          py::arg("symmetries"),
+          py::arg("variability"),
+          py::arg("rotations"),
+          py::arg("mirrors"))
+      .def("multiplicity", &WyckoffSite::multiplicity)
+      .def("vary_x", &WyckoffSite::vary_x)
+      .def("vary_y", &WyckoffSite::vary_y)
+      .def("mirror_type", &WyckoffSite::mirror_type)
+      .def("__str__", &WyckoffSite::str)
+      .def_readonly("letter", &WyckoffSite::letter)
+      .def_readonly("symmetries", &WyckoffSite::symmetries);
+}
+
+void export_WallpaperGroup(py::module& m) {
+  py::class_<WallpaperGroup> wallpapergroup(m, "WallpaperGroup");
+  wallpapergroup
+      .def(
+          py::init<
+              const std::string,
+              const std::vector<WyckoffSite>,
+              const std::size_t,
+              const bool,
+              const bool,
+              const bool>(),
+          py::arg("label"),
+          py::arg("wyckoff_sites"),
+          py::arg("num_symmetries") = 1,
+          py::arg("a_b_equal") = false,
+          py::arg("rectangular") = false,
+          py::arg("hexagonal") = false)
+      .def_readonly("label", &WallpaperGroup::label)
+      .def_readonly("wyckoff_sites", &WallpaperGroup::wyckoff_sites)
+      .def_readonly("num_symmetries", &WallpaperGroup::num_symmetries)
+      .def("num_wyckoffs", &WallpaperGroup::num_wyckoffs);
 }

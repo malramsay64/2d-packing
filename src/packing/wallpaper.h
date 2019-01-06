@@ -39,11 +39,18 @@ enum class Mirror {
  */
 class SymmetryTransform {
 public:
-  SymmetryTransform(Vect3 x_coeffs, Vect3 y_coeffs, double rotation_offset);
-  Vect3 x_coeffs;
-  Vect3 y_coeffs;
-  double rotation_offset;
-  enum mirror site_mirror;
+  const Vect3 x_coeffs;
+  const Vect3 y_coeffs;
+  const double rotation_offset;
+  const Mirror site_mirror;
+
+  SymmetryTransform(
+      const Vect3& x_coeffs,
+      const Vect3& y_coeffs,
+      const double rotation_offset,
+      const Mirror mirror)
+      : x_coeffs(x_coeffs), y_coeffs(y_coeffs), rotation_offset(rotation_offset),
+        site_mirror(mirror){};
 
   bool operator==(const SymmetryTransform& other) const;
   friend std::ostream& operator<<(std::ostream&, const SymmetryTransform&);
@@ -69,11 +76,20 @@ public:
  */
 class WyckoffSite {
 public:
-  char letter;
-  int variability;
-  int rotations;
-  int mirrors;
-  std::vector<SymmetryTransform> symmetries;
+  const char letter;
+  const std::vector<SymmetryTransform> symmetries;
+  const int variability;
+  const int rotations;
+  const int mirrors;
+
+  WyckoffSite(
+      const char letter,
+      const std::vector<SymmetryTransform>& symmetries,
+      const std::size_t variability,
+      const std::size_t rotations,
+      const std::size_t mirrors)
+      : letter(letter), symmetries(symmetries), variability(variability),
+        rotations(rotations), mirrors(mirrors){};
 
   std::size_t multiplicity() const;
   bool vary_x() const;
@@ -86,7 +102,9 @@ public:
 
 /** \class IsopointalGroup
  *
- * An IsopointalGroup is a collection
+ * An IsopointalGroup specifies the occupation of Wyckoff sites for a given number of
+ * occupied sites. The entire collection of isopointal groups, is all the unique
+ * combinations of occupied sites.
  */
 class IsopointalGroup {
 public:
@@ -108,19 +126,39 @@ public:
  */
 class WallpaperGroup {
 public:
-  WallpaperGroup(std::string label, std::vector<WyckoffSite> wyckoffs);
   const std::string label;
+  const std::vector<WyckoffSite> wyckoff_sites;
+  const std::size_t num_symmetries = 0;
   const bool a_b_equal = false;
-  const bool hexagonal = false;
   const bool rectangular = false;
-  int num_symmetries = 0;
-  std::vector<WyckoffSite> wyckoff_sites;
-  int num_wyckoffs;
+  const bool hexagonal = false;
+
+  WallpaperGroup(
+      const std::string label,
+      const std::vector<WyckoffSite>& wyckoffs,
+      const std::size_t num_symmetries,
+      const bool a_b_equal,
+      const bool rectangular,
+      const bool hexagonal)
+      : label(label), wyckoff_sites(wyckoffs), num_symmetries(num_symmetries),
+        a_b_equal(a_b_equal), rectangular(rectangular), hexagonal(hexagonal){};
+
+  WallpaperGroup(const std::string label, const std::vector<WyckoffSite> wyckoffs)
+      : WallpaperGroup(label, wyckoffs, 1, false, false, false){};
+
+  std::size_t num_wyckoffs() {
+    return this->wyckoff_sites.size();
+  };
 };
 
 std::vector<IsopointalGroup> generate_isopointal_groups(
     const Shape& shape,
     const WallpaperGroup& group,
     std::size_t num_occupied_sites);
+
+void export_Mirror(pybind11::module& m);
+void export_SymmetryTransform(pybind11::module& m);
+void export_WyckoffSite(pybind11::module& m);
+void export_WallpaperGroup(pybind11::module& m);
 
 #endif /* !WALLPAPER_H */
