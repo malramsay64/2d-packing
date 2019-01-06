@@ -6,6 +6,7 @@
  */
 
 #include <algorithm>
+#include <set>
 #include <vector>
 
 #include <pybind11/pybind11.h>
@@ -14,6 +15,14 @@
 
 #ifndef UTIL_H
 #define UTIL_H
+
+template <typename T> void uniqueify(std::vector<T>& v) {
+  auto end = v.end();
+  for (auto it = v.begin(); it != end; ++it) {
+    end = std::remove(it + 1, end, *it);
+  }
+  v.erase(end, v.end());
+}
 
 std::size_t calculate_shape_replicas(const std::vector<OccupiedSite>& sites);
 
@@ -31,6 +40,7 @@ std::vector<std::vector<T>> combinations(
       combination_list.push_back(std::vector<T>{*index});
     }
     // Return all the sites as a 2D array
+    uniqueify<std::vector<T>>(combination_list);
     return combination_list;
   }
 
@@ -46,7 +56,7 @@ std::vector<std::vector<T>> combinations(
     // Add the subset for the current value to the end of all values
     combination_list.insert(combination_list.end(), subsets.begin(), subsets.end());
   }
-  std::unique(combination_list.begin(), combination_list.end());
+  uniqueify<std::vector<T>>(combination_list);
   return combination_list;
 }
 
