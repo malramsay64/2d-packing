@@ -57,6 +57,9 @@ public:
   Vect2 get_position() const;
   int get_flip_sign() const;
   int get_multiplicity() const;
+
+  std::string str() const;
+  friend std::ostream& operator<<(std::ostream&, const OccupiedSite&);
 };
 
 struct Cell {

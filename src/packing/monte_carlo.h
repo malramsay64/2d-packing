@@ -50,6 +50,10 @@ public:
             std::shared_ptr<const Shape>(&shape),
             std::shared_ptr<Cell>(&cell),
             std::shared_ptr<std::vector<OccupiedSite>>(&occupied_sites)){};
+
+  std::string str() const;
+
+  friend std::ostream& operator<<(std::ostream& os, const PackedState& packed_state);
 };
 
 #endif /* !MONTE_CARLO_H */

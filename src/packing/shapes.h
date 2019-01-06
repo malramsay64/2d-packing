@@ -83,6 +83,7 @@ public:
   enum mirror site_mirror;
 
   bool operator==(const SymmetryTransform& other) const;
+  friend std::ostream& operator<<(std::ostream&, const SymmetryTransform&);
 
   Vect2 real_to_fractional(const Vect3& real) const;
 };
@@ -111,13 +112,11 @@ public:
   int mirrors;
   std::vector<SymmetryTransform> symmetries;
 
-  bool operator==(const WyckoffSite& other) const;
-
   std::size_t multiplicity() const;
-
   bool vary_x() const;
   bool vary_y() const;
   int mirror_type() const;
+  std::string str() const;
 };
 
 /** \class ShapeInstance

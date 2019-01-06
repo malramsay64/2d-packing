@@ -9,6 +9,7 @@
 
 #include <cmath>
 #include <cstddef>
+#include <ostream>
 
 #include <pybind11/operators.h>
 
@@ -56,6 +57,11 @@ Vect2 Vect2::operator%(const double other) const {
 
 bool Vect3::operator==(const Vect3& other) const {
   return this->x == other.x && this->y == other.y && this->z == other.z;
+}
+
+std::ostream& operator<<(std::ostream& os, const Vect2& vect2) {
+  os << "x: " << vect2.x << " y: " << vect2.y;
+  return os;
 }
 
 double Vect2::norm_sq() const {

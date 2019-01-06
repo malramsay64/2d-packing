@@ -7,6 +7,8 @@
 
 #include "monte_carlo.h"
 
+#include <sstream>
+
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/spdlog.h>
 
@@ -15,6 +17,24 @@
 double MCVars::kT_ratio() const {
   return std::pow(this->kT_finish / this->kT_start, 1.0 / this->steps);
 };
+
+std::ostream& operator<<(std::ostream& os, const PackedState& packed_state) {
+  os << "Shape: " << packed_state.shape->name << std::endl;
+  os << "Cell:" << std::endl;
+  os << "  a: " << packed_state.cell->x_len->get_value() << std::endl;
+  os << "  b: " << packed_state.cell->y_len->get_value() << std::endl;
+  os << "  angle: " << packed_state.cell->angle->get_value() << std::endl;
+  os << "Wallpaper Group: " << packed_state.wallpaper->label << std::endl;
+  for (const auto& site : *packed_state.occupied_sites) {
+    os << site << std::endl;
+  }
+}
+
+std::string PackedState::str() const {
+  std::stringstream ss;
+  ss << *this;
+  return ss.str();
+}
 
 PackedState uniform_best_packing_in_isopointal_group(
     const Shape& shape,

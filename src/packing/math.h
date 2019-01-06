@@ -33,6 +33,7 @@ struct Vect2 {
   Vect2 operator*(const float other) const;
   Vect2 operator%(const Vect2& other) const;
   Vect2 operator%(const double other) const;
+  friend std::ostream& operator<<(std::ostream&, const Vect2&);
 
   double norm_sq() const;
   double norm() const;

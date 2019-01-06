@@ -9,6 +9,8 @@
 
 #include <algorithm>
 #include <cmath>
+#include <ostream>
+#include <sstream>
 #include <string>
 
 #include "isopointal.h"
@@ -55,6 +57,21 @@ int OccupiedSite::get_flip_sign() const {
 
 int OccupiedSite::get_multiplicity() const {
   return this->wyckoff->multiplicity();
+}
+
+std::string OccupiedSite::str() const {
+  std::stringstream ss;
+  ss << *this;
+  return ss.str();
+}
+
+std::ostream& operator<<(std::ostream& os, const OccupiedSite& site) {
+  os << "Site: " << site.wyckoff->letter << std::endl;
+  for (const auto& symmetry : site.wyckoff->symmetries) {
+    os << " - " << symmetry.real_to_fractional(site.site_variables())
+       << "angle: " << site.angle->get_value() + symmetry.rotation_offset << std::endl;
+  }
+  return os;
 }
 
 double Cell::area() const {
