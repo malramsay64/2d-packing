@@ -15,6 +15,7 @@
 
 #include "isopointal.h"
 #include "shapes.h"
+#include "wallpaper.h"
 
 namespace py = pybind11;
 

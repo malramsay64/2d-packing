@@ -22,6 +22,47 @@
 #include "shapes.h"
 #include "util.h"
 
+bool SymmetryTransform::operator==(const SymmetryTransform& other) const {
+  return (
+      this->x_coeffs == other.x_coeffs && this->y_coeffs == other.y_coeffs &&
+      this->rotation_offset == other.rotation_offset &&
+      this->site_mirror == other.site_mirror);
+}
+
+Vect2 SymmetryTransform::real_to_fractional(const Vect3& real) const {
+  /* converts site variables and wyckoff site coefficients into the location
+   * of the actual wyckoff image in fractional coordinates */
+  Vect2 v(0, 0);
+  v.x = this->x_coeffs.x * real.x + this->x_coeffs.y * real.y + this->x_coeffs.z;
+  v.y = this->y_coeffs.x * real.x + this->y_coeffs.y * real.y + this->y_coeffs.z;
+  return positive_modulo(v, 1.);
+}
+
+bool WyckoffSite::operator==(const WyckoffSite& other) const {
+  return (
+      this->letter == other.letter && this->variability == other.variability &&
+      this->rotations == other.rotations && this->mirrors == other.mirrors &&
+      this->symmetries == other.symmetries);
+}
+
+std::size_t WyckoffSite::multiplicity() const {
+  return this->symmetries.size();
+}
+
+bool WyckoffSite::vary_x() const {
+  // If the first symmetry can vary x, all of them can
+  return fabs(this->symmetries[0].x_coeffs.x) > 0.1;
+}
+
+bool WyckoffSite::vary_y() const {
+  // If the first symmetry can vary x, all of them can
+  return fabs(this->symmetries[0].y_coeffs.y) > 0.1;
+}
+
+int WyckoffSite::mirror_type() const {
+  return this->symmetries[0].site_mirror;
+}
+
 /** Check whether two shape instances intersect
  */
 bool check_for_intersection(
@@ -108,91 +149,113 @@ double calculate_packing_fraction(
   return packing_fraction;
 }
 
-std::vector<OccupiedSite> initialise_structure(
-    const Shape& shape,
-    const IsopointalGroup& isopointal_group,
-    const WallpaperGroup& group,
-    Cell& cell,
-    std::vector<Basis>& basis,
-    const double step_size) {
+bool ShapeInstance::operator==(const ShapeInstance& other) const {
+  return (
+      this->shape == other.shape && this->site == other.site &&
+      this->symmetry_transform == other.symmetry_transform);
+}
 
-  // Logging to console which can be turned off easily
-  auto console = spdlog::stdout_color_mt("console");
+Vect2 ShapeInstance::get_fractional_coordinates() const {
+  return this->symmetry_transform->real_to_fractional(this->site->site_variables());
+}
 
-  // cell sides.
-  std::size_t count_replicas{isopointal_group.group_multiplicity()};
-  const double max_cell_size{4 * shape.max_radius * count_replicas};
-  if (group.a_b_equal) {
-    console->debug("Cell sides equal");
-    basis.push_back(CellLengthBasis(max_cell_size, 0.1, max_cell_size, step_size));
+Vect2 ShapeInstance::get_real_coordinates() const {
+  return this->site->get_position();
+}
 
-    cell.x_len = std::shared_ptr<Basis>(&basis.back());
-    cell.y_len = std::shared_ptr<Basis>(&basis.back());
-  } else {
-    basis.push_back(CellLengthBasis(max_cell_size, 0.1, max_cell_size, step_size));
-    cell.x_len = std::shared_ptr<Basis>(&basis.back());
+double ShapeInstance::get_angle() const {
+  return this->site->angle->get_value();
+}
 
-    basis.push_back(CellLengthBasis(max_cell_size, 0.1, max_cell_size, step_size));
-    cell.y_len = std::shared_ptr<Basis>(&basis.back());
+double ShapeInstance::get_rotational_offset() const {
+  return this->symmetry_transform->rotation_offset;
+}
+
+bool ShapeInstance::get_flipped() const {
+  return this->symmetry_transform->flipped ^ this->site->flip_site;
+}
+
+std::pair<double, double> ShapeInstance::compute_incline(
+    const ShapeInstance& other,
+    const Vect2& position_other) const {
+
+  const Vect2& position_this{this->get_real_coordinates()};
+  const double central_dist{(position_this - position_other).norm()};
+  double a_to_b_incline{acos((position_other.x - position_this.x) / central_dist)};
+
+  if (std::isnan(a_to_b_incline)) {
+    if (is_close(position_other.x - position_this.x, central_dist, 1e-8)) {
+      a_to_b_incline = 0.0;
+    } else if (is_close(position_other.x - position_this.x, -central_dist, 1e-8)) {
+      a_to_b_incline = M_PI;
+    }
+  }
+  if (position_other.x < position_this.x) {
+    a_to_b_incline = M_2_PI - a_to_b_incline;
   }
 
-  // cell angles.
-  if (group.hexagonal) {
-    console->debug("Hexagonal group");
-    cell.angle = std::make_shared<FixedBasis>(M_PI / 3);
-  } else if (group.rectangular) {
-    console->debug("Rectangular group");
-    cell.angle = std::make_shared<FixedBasis>(M_PI_2);
-  } else {
-    console->debug("Tilted group");
-    basis.push_back(CellAngleBasis(
-        M_PI_4 + fluke() * M_PI_2,
-        M_PI_4,
-        3 * M_PI_4,
-        step_size,
-        cell.x_len,
-        cell.y_len));
-    cell.angle = std::shared_ptr<Basis>(&basis.back());
+  // Set reverse incline
+  double b_to_a_incline{a_to_b_incline + M_PI};
+
+  // Deal with the flipping of shapes
+  if (this->get_flipped()) {
+    a_to_b_incline = M_2_PI - a_to_b_incline;
+  }
+  if (other.get_flipped()) {
+    b_to_a_incline = M_2_PI - b_to_a_incline;
   }
 
-  std::vector<OccupiedSite> sites;
-  // now position the particles.
-  for (const WyckoffSite& wyckoff : isopointal_group.wyckoff_sites) {
-    OccupiedSite site{};
+  /* now add in the rotation due to the orientation parameters */
+  /* This is unaffected by the flip states */
+  a_to_b_incline += this->get_angle();
+  b_to_a_incline += other.get_angle();
 
-    console->debug("Wyckoff site: %c ", wyckoff.letter);
+  /* now add in the rotation due to the rotation of this image wrt the other
+   * images of the same wyckoff */
+  a_to_b_incline += std::pow(-1, this->get_flipped()) * this->get_rotational_offset();
+  b_to_a_incline += std::pow(-1, other.get_flipped()) * other.get_rotational_offset();
 
-    if (wyckoff.vary_x()) {
-      /* x is variable*/
-      basis.push_back(Basis(fluke(), 0, 1));
-      site.x = std::shared_ptr<Basis>(&basis.back());
-      console->debug("WyckoffSite x variable %f\n", site.x->get_value());
-    }
-    if (wyckoff.vary_y()) {
-      /* then y is variable*/
-      basis.push_back(Basis(fluke(), 0, 1));
-      site.y = std::shared_ptr<Basis>(&basis.back());
-      console->debug("WyckoffSite y variable %f\n", site.y->get_value());
-    }
+  a_to_b_incline = positive_modulo(a_to_b_incline, M_2_PI);
+  b_to_a_incline = positive_modulo(b_to_a_incline, M_2_PI);
+  return std::pair<double, double>{a_to_b_incline, b_to_a_incline};
+}
 
-    /*choose the orientation of the zeroth image of this particle */
-    /* This could also be done within the Wyckoff position SITEROTATION
-     * parameter?... */
-    if (wyckoff.mirrors) {
-      const int mirrors{wyckoff.mirror_type()};
-      const double value{M_PI / 180 * mirrors};
-      basis.push_back(MirrorBasis(value, 0, M_2_PI, mirrors));
-      site.angle = std::shared_ptr<Basis>(&basis.back());
-    } else {
-      const double value{fluke() * M_2_PI};
-      basis.push_back(Basis(value, 0, M_2_PI, step_size));
-      site.angle = std::shared_ptr<Basis>(&basis.back());
-      console->debug("site offset-angle is variable %f\n", site.angle->get_value());
-    }
-    sites.push_back(site);
+bool ShapeInstance::intersects_with(
+    const ShapeInstance& other,
+    const Vect2& position_other) const {
+
+  const Vect2& position_this{this->get_real_coordinates()};
+  const double central_dist{(position_this - position_other).norm()};
+  /* No clash when further apart than the maximum shape radii measures */
+  if (central_dist > this->shape->max_radius + other.shape->max_radius) {
+    return false;
   }
 
-  console->debug("replicas %d variables %d os ", count_replicas, basis.size());
+  double angle_this_to_other, angle_other_to_this;
+  std::tie(angle_this_to_other, angle_other_to_this) =
+      this->compute_incline(other, position_other);
 
-  return sites;
+  std::vector<Vect2> position_a_cache =
+      this->shape->generate_position_cache(position_this, angle_this_to_other);
+  std::vector<Vect2> position_b_cache =
+      other.shape->generate_position_cache(position_other, angle_other_to_this);
+
+  // The final element is the inital previous position providing a closed shape
+  // regardless of the number of points checked.
+  Vect2& position_a_prev = position_a_cache.back();
+  Vect2& position_b_prev = position_b_cache.back();
+  for (auto position_a = position_a_cache.begin(); position_a != position_a_cache.end();
+       ++position_a) {
+    for (auto position_b = position_b_cache.begin();
+         position_b != position_b_cache.end();
+         ++position_b) {
+      if (segments_cross(position_a_prev, *position_a, position_b_prev, *position_b)) {
+        return true;
+      }
+      // Update the previous point
+      position_a_prev = *position_a;
+      position_b_prev = *position_b;
+    }
+  }
+  return false;
 }

@@ -9,10 +9,13 @@
 
 #include <sstream>
 
+#include <pybind11/pybind11.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/spdlog.h>
 
 #include "wallpaper.h"
+
+namespace py = pybind11;
 
 double MCVars::kT_ratio() const {
   return std::pow(this->kT_finish / this->kT_start, 1.0 / this->steps);
@@ -28,12 +31,103 @@ std::ostream& operator<<(std::ostream& os, const PackedState& packed_state) {
   for (const auto& site : *packed_state.occupied_sites) {
     os << site << std::endl;
   }
+  return os;
 }
 
 std::string PackedState::str() const {
   std::stringstream ss;
   ss << *this;
   return ss.str();
+}
+
+PackedState initialise_structure(
+    const Shape& shape,
+    const IsopointalGroup& isopointal,
+    const WallpaperGroup& wallpaper,
+    const double step_size) {
+
+  // Logging to console which can be turned off easily
+  auto console = spdlog::stdout_color_mt("console");
+
+  std::vector<Basis> basis;
+  Cell cell;
+
+  // cell sides.
+  std::size_t count_replicas{isopointal.group_multiplicity()};
+  const double max_cell_size{4 * shape.max_radius * count_replicas};
+  if (wallpaper.a_b_equal) {
+    console->debug("Cell sides equal");
+    basis.push_back(CellLengthBasis(max_cell_size, 0.1, max_cell_size, step_size));
+
+    cell.x_len = std::shared_ptr<Basis>(&basis.back());
+    cell.y_len = std::shared_ptr<Basis>(&basis.back());
+  } else {
+    basis.push_back(CellLengthBasis(max_cell_size, 0.1, max_cell_size, step_size));
+    cell.x_len = std::shared_ptr<Basis>(&basis.back());
+
+    basis.push_back(CellLengthBasis(max_cell_size, 0.1, max_cell_size, step_size));
+    cell.y_len = std::shared_ptr<Basis>(&basis.back());
+  }
+
+  // cell angles.
+  if (wallpaper.hexagonal) {
+    console->debug("Hexagonal group");
+    cell.angle = std::make_shared<FixedBasis>(M_PI / 3);
+  } else if (wallpaper.rectangular) {
+    console->debug("Rectangular group");
+    cell.angle = std::make_shared<FixedBasis>(M_PI_2);
+  } else {
+    console->debug("Tilted group");
+    basis.push_back(CellAngleBasis(
+        M_PI_4 + fluke() * M_PI_2,
+        M_PI_4,
+        3 * M_PI_4,
+        step_size,
+        cell.x_len,
+        cell.y_len));
+    cell.angle = std::shared_ptr<Basis>(&basis.back());
+  }
+
+  std::vector<OccupiedSite> sites;
+  // The chosen Wyckoff sites are in the IsopointalGroup class.
+  for (const WyckoffSite& wyckoff : isopointal.wyckoff_sites) {
+    OccupiedSite site{};
+
+    console->debug("Wyckoff site: %c ", wyckoff.letter);
+
+    // x is not fixed
+    if (wyckoff.vary_x()) {
+      basis.push_back(Basis(fluke(), 0, 1));
+      site.x = std::shared_ptr<Basis>(&basis.back());
+      console->debug("WyckoffSite x variable %f\n", site.x->get_value());
+    }
+    // y is not fixed
+    if (wyckoff.vary_y()) {
+      /* then y is variable*/
+      basis.push_back(Basis(fluke(), 0, 1));
+      site.y = std::shared_ptr<Basis>(&basis.back());
+      console->debug("WyckoffSite y variable %f\n", site.y->get_value());
+    }
+
+    // Setting the angle of the Wyckoff Site.
+    // Where there are mirrors the angle has fewer orienations it is allowed to take.
+    if (wyckoff.mirrors) {
+      const int mirrors{wyckoff.mirror_type()};
+      const double value{M_PI / 180 * mirrors};
+      basis.push_back(MirrorBasis(value, 0, M_2_PI, mirrors));
+      site.angle = std::shared_ptr<Basis>(&basis.back());
+    } else {
+      const double value{fluke() * M_2_PI};
+      basis.push_back(Basis(value, 0, M_2_PI, step_size));
+      site.angle = std::shared_ptr<Basis>(&basis.back());
+      console->debug("site offset-angle is variable %f\n", site.angle->get_value());
+    }
+    sites.push_back(site);
+  }
+
+  console->debug("replicas %d variables %d os ", count_replicas, basis.size());
+
+  return PackedState(wallpaper, shape, cell, sites, basis);
 }
 
 PackedState uniform_best_packing_in_isopointal_group(
@@ -136,4 +230,8 @@ PackedState uniform_best_packing_in_isopointal_group(
   }
 
   return PackedState(wallpaper, shape, cell, sites);
+}
+
+void export_PackedState(py::module& m) {
+  py::class_<PackedState>(m, "PackedState").def("__str__", &PackedState::str);
 }
