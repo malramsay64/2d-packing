@@ -32,6 +32,12 @@ bool SymmetryTransform::operator==(const SymmetryTransform& other) const {
       this->site_mirror == other.site_mirror);
 }
 
+std::ostream& operator<<(std::ostream& os, const SymmetryTransform& symmetry) {
+  os << " - " << symmetry.real_to_fractional(Vect3{0, 0, 0})
+     << "angle: " << symmetry.rotation_offset << std::endl;
+  return os;
+}
+
 Vect2 SymmetryTransform::real_to_fractional(const Vect3& real) const {
   /* converts site variables and wyckoff site coefficients into the location
    * of the actual wyckoff image in fractional coordinates */
@@ -39,6 +45,12 @@ Vect2 SymmetryTransform::real_to_fractional(const Vect3& real) const {
   v.x = this->x_coeffs.x * real.x + this->x_coeffs.y * real.y + this->x_coeffs.z;
   v.y = this->y_coeffs.x * real.x + this->y_coeffs.y * real.y + this->y_coeffs.z;
   return positive_modulo(v, 1.);
+}
+
+std::string SymmetryTransform::str() const {
+  std::stringstream ss;
+  ss << *this;
+  return ss.str();
 }
 
 bool WyckoffSite::operator==(const WyckoffSite& other) const {
@@ -63,7 +75,18 @@ bool WyckoffSite::vary_y() const {
 }
 
 int WyckoffSite::mirror_type() const {
-  return this->symmetries[0].site_mirror;
+  return static_cast<int>(this->symmetries.front().site_mirror);
+}
+
+std::string WyckoffSite::str() const {
+  std::stringstream ss;
+  ss << "WyckoffSite(letter= " << this->letter << ", variability=" << this->variability
+     << ", rotations=" << this->rotations << ", mirrors=" << this->mirrors << ")"
+     << std::endl;
+  for (const auto& symmetry : this->symmetries) {
+    ss << symmetry;
+  }
+  return ss.str();
 }
 
 std::string IsopointalGroup::group_string() const {

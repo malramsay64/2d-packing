@@ -13,6 +13,7 @@
 #include "random.h"
 #include "shapes.h"
 #include "util.h"
+#include "wallpaper.h"
 
 PYBIND11_MODULE(_packing, m) {
   m.attr("__name__") = "pypacking._packing";
@@ -26,6 +27,10 @@ PYBIND11_MODULE(_packing, m) {
   export_geometry(m);
   export_Basis(m);
   export_combinations(m);
+  export_Mirror(m);
+  export_SymmetryTransform(m);
+  export_WyckoffSite(m);
+  export_WallpaperGroup(m);
 
 #ifdef VERSION_INFO
   m.attr("__version__") = VERSION_INFO;

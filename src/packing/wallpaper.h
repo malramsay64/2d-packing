@@ -7,6 +7,8 @@
 
 #include <vector>
 
+#include <pybind11/pybind11.h>
+
 #include "shapes.h"
 
 #ifndef WALLPAPER_H
@@ -52,10 +54,18 @@ public:
       : x_coeffs(x_coeffs), y_coeffs(y_coeffs), rotation_offset(rotation_offset),
         site_mirror(mirror){};
 
+  SymmetryTransform(const SymmetryTransform& other)
+      : x_coeffs(other.x_coeffs), y_coeffs(other.y_coeffs),
+        rotation_offset(other.rotation_offset), site_mirror(other.site_mirror){};
+
+  SymmetryTransform operator=(const SymmetryTransform& other) {
+    return SymmetryTransform(other);
+  };
   bool operator==(const SymmetryTransform& other) const;
   friend std::ostream& operator<<(std::ostream&, const SymmetryTransform&);
 
   Vect2 real_to_fractional(const Vect3& real) const;
+  std::string str() const;
 };
 
 /** \class WyckoffSite
@@ -78,9 +88,9 @@ class WyckoffSite {
 public:
   const char letter;
   const std::vector<SymmetryTransform> symmetries;
-  const int variability;
-  const int rotations;
-  const int mirrors;
+  const std::size_t variability;
+  const std::size_t rotations;
+  const std::size_t mirrors;
 
   WyckoffSite(
       const char letter,
@@ -91,12 +101,21 @@ public:
       : letter(letter), symmetries(symmetries), variability(variability),
         rotations(rotations), mirrors(mirrors){};
 
+  WyckoffSite(const WyckoffSite& site)
+      : letter(site.letter),
+        symmetries(std::vector<SymmetryTransform>(site.symmetries)),
+        variability(site.variability), rotations(site.rotations),
+        mirrors(site.mirrors){};
+
   std::size_t multiplicity() const;
   bool vary_x() const;
   bool vary_y() const;
   int mirror_type() const;
   std::string str() const;
 
+  WyckoffSite operator=(const WyckoffSite& other) {
+    return WyckoffSite(other);
+  }
   bool operator==(const WyckoffSite& other) const;
 };
 
@@ -110,7 +129,7 @@ class IsopointalGroup {
 public:
   std::vector<WyckoffSite> wyckoff_sites;
 
-  IsopointalGroup(std::vector<WyckoffSite>& sites) : wyckoff_sites(sites){};
+  IsopointalGroup(const std::vector<WyckoffSite>& sites) : wyckoff_sites(sites){};
 
   std::size_t group_multiplicity() const;
   std::string group_string() const;
@@ -143,7 +162,7 @@ public:
       : label(label), wyckoff_sites(wyckoffs), num_symmetries(num_symmetries),
         a_b_equal(a_b_equal), rectangular(rectangular), hexagonal(hexagonal){};
 
-  WallpaperGroup(const std::string label, const std::vector<WyckoffSite> wyckoffs)
+  WallpaperGroup(const std::string label, const std::vector<WyckoffSite>& wyckoffs)
       : WallpaperGroup(label, wyckoffs, 1, false, false, false){};
 
   std::size_t num_wyckoffs() {
