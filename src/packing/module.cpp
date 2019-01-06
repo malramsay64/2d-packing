@@ -12,6 +12,7 @@
 #include "math.h"
 #include "random.h"
 #include "shapes.h"
+#include "util.h"
 
 PYBIND11_MODULE(_packing, m) {
   m.attr("__name__") = "pypacking._packing";
@@ -24,6 +25,7 @@ PYBIND11_MODULE(_packing, m) {
   export_Vect2(m);
   export_geometry(m);
   export_Basis(m);
+  export_combinations(m);
 
 #ifdef VERSION_INFO
   m.attr("__version__") = VERSION_INFO;
