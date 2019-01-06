@@ -36,6 +36,22 @@ char compute_chiral_state(const std::vector<OccupiedSite>& occupied_sites) {
 }
 
 void export_combinations(py::module& m) {
-  m.def("py_combinations", &py_combinations<int>);
-  m.def("py_combinations", &py_combinations<double>);
+  m.def("combinations", &combinations<int>, py::arg("values"), py::arg("take"));
+  m.def("combinations", &combinations<double>);
+  m.def("uniqueify", [](std::vector<int> v) {
+    uniqueify<int>(v);
+    return v;
+  });
+  m.def("uniqueify", [](std::vector<double> v) {
+    uniqueify<double>(v);
+    return v;
+  });
+  m.def("uniqueify", [](std::vector<std::vector<int>> v) {
+    uniqueify<std::vector<int>>(v);
+    return v;
+  });
+  m.def("uniqueify", [](std::vector<std::vector<double>> v) {
+    uniqueify<std::vector<double>>(v);
+    return v;
+  });
 }

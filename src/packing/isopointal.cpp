@@ -64,8 +64,8 @@ std::vector<IsopointalGroup> generate_isopointal_groups(
     }
   }
 
-  std::vector<std::vector<WyckoffSite>> occupied_sites = combinations<WyckoffSite>(
-      valid_sites.begin(), valid_sites.end(), num_occupied_sites);
+  auto occupied_sites = combinations<WyckoffSite>(valid_sites, num_occupied_sites);
+  uniqueify(occupied_sites);
 
   console->info(
       "enumeration complete: in fact there were %lu ways\n", occupied_sites.size());

@@ -27,7 +27,7 @@ template <typename T> void uniqueify(std::vector<T>& v) {
 std::size_t calculate_shape_replicas(const std::vector<OccupiedSite>& sites);
 
 template <typename T>
-std::vector<std::vector<T>> combinations(
+std::vector<std::vector<T>> combinations_iter(
     typename std::vector<T>::iterator iter_begin,
     typename std::vector<T>::iterator iter_end,
     int num_picked) {
@@ -40,7 +40,6 @@ std::vector<std::vector<T>> combinations(
       combination_list.push_back(std::vector<T>{*index});
     }
     // Return all the sites as a 2D array
-    uniqueify<std::vector<T>>(combination_list);
     return combination_list;
   }
 
@@ -48,7 +47,7 @@ std::vector<std::vector<T>> combinations(
     // Temporary variable for each loop
     std::vector<std::vector<T>> subsets;
     // Wyckoff Type removed
-    subsets = combinations<T>(index + 1, iter_end, num_picked - 1);
+    subsets = combinations_iter<T>(index + 1, iter_end, num_picked - 1);
     // Adding the current value to the front of the vector
     for (auto& sub : subsets) {
       sub.insert(sub.begin(), *index);
@@ -56,18 +55,14 @@ std::vector<std::vector<T>> combinations(
     // Add the subset for the current value to the end of all values
     combination_list.insert(combination_list.end(), subsets.begin(), subsets.end());
   }
-  uniqueify<std::vector<T>>(combination_list);
   return combination_list;
 }
 
 template <typename T>
 std::vector<std::vector<T>>
-py_combinations(std::vector<T>& values, std::size_t num_picked) {
-  return combinations<T>(values.begin(), values.end(), num_picked);
+combinations(std::vector<T>& values, std::size_t num_picked) {
+  return combinations_iter<T>(values.begin(), values.end(), num_picked);
 }
-
-std::vector<std::vector<int>>
-int_combinations(std::vector<int>& values, std::size_t num_picked);
 
 void export_combinations(pybind11::module& m);
 
