@@ -19,15 +19,15 @@
  *  The values of the mirror enum resolve to the values of the rotation, so are used for
  *  the calculations involving the rotations.
  */
-enum mirror {
+enum class Mirror {
   m0 = 0,
-  m90 = 90,
-  m45 = 45,
-  m135 = 135,
   m30 = 30,
+  m45 = 45,
   m60 = 60,
+  m90 = 90,
+  m135 = 135,
+  m300 = 300,
   m330 = 330,
-  m300 = 300
 };
 
 /** \class SymmetryTransform
