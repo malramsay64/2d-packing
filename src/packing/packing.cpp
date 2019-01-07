@@ -7,6 +7,8 @@
 
 #include "packing.h"
 
+#include <cmath>
+
 #include "geometry.h"
 #include "math.h"
 
