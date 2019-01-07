@@ -64,7 +64,7 @@ std::string OccupiedSite::str() const {
 std::ostream& operator<<(std::ostream& os, const OccupiedSite& site) {
   os << "Site: " << site.wyckoff->letter << std::endl;
   for (const auto& symmetry : site.wyckoff->symmetries) {
-    os << " - " << symmetry.real_to_fractional(site.site_variables())
+    os << " - " << symmetry.real_to_fractional(site.get_position())
        << "angle: " << site.angle->get_value() + symmetry.rotation_offset << std::endl;
   }
   return os;

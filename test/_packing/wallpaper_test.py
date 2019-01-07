@@ -23,4 +23,4 @@ def test_Mirror(state):
 
 def test_SymmetryTransform():
     st = SymmetryTransform(Vect3(1, 0, 0), Vect3(0, 1, 0), 0, Mirror(0))
-    assert st.real_to_fractional(Vect3(0.5, 0.5, 0)) == Vect2(0.5, 0.5)
+    assert st.real_to_fractional(Vect2(0.5, 0.5)) == Vect2(0.5, 0.5)

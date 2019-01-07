@@ -17,7 +17,7 @@ bool ShapeInstance::operator==(const ShapeInstance& other) const {
 }
 
 Vect2 ShapeInstance::get_fractional_coordinates() const {
-  return this->symmetry_transform->real_to_fractional(this->site->site_variables());
+  return this->symmetry_transform->real_to_fractional(this->site->get_position());
 }
 
 Vect2 ShapeInstance::get_real_coordinates() const {

@@ -33,12 +33,12 @@ bool SymmetryTransform::operator==(const SymmetryTransform& other) const {
 }
 
 std::ostream& operator<<(std::ostream& os, const SymmetryTransform& symmetry) {
-  os << " - " << symmetry.real_to_fractional(Vect3{0, 0, 0})
+  os << " - " << symmetry.real_to_fractional(Vect2{0, 0})
      << "angle: " << symmetry.rotation_offset << std::endl;
   return os;
 }
 
-Vect2 SymmetryTransform::real_to_fractional(const Vect3& real) const {
+Vect2 SymmetryTransform::real_to_fractional(const Vect2& real) const {
   /* converts site variables and wyckoff site coefficients into the location
    * of the actual wyckoff image in fractional coordinates */
   Vect2 v(

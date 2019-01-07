@@ -64,7 +64,7 @@ public:
   bool operator==(const SymmetryTransform& other) const;
   friend std::ostream& operator<<(std::ostream&, const SymmetryTransform&);
 
-  Vect2 real_to_fractional(const Vect3& real) const;
+  Vect2 real_to_fractional(const Vect2& real) const;
   std::string str() const;
 };
 
