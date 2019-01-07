@@ -24,6 +24,7 @@ PYBIND11_MODULE(_packing, m) {
   export_fluke(m);
   export_Shape(m);
   export_Vect2(m);
+  export_Vect3(m);
   export_geometry(m);
   export_Basis(m);
   export_combinations(m);

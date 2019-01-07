@@ -9,7 +9,9 @@
 
 #include <cmath>
 #include <cstddef>
+#include <iomanip>
 #include <ostream>
+#include <sstream>
 
 #include <pybind11/operators.h>
 
@@ -64,6 +66,13 @@ std::ostream& operator<<(std::ostream& os, const Vect2& vect2) {
   return os;
 }
 
+std::string Vect2::str() const {
+  std::stringstream ss;
+  ss << std::fixed << std::setprecision(5);
+  ss << "Vect2(x=" << this->x << ", y=" << this->y << ")";
+  return ss.str();
+}
+
 double Vect2::norm_sq() const {
   return this->x * this->x + this->y * this->y;
 }
@@ -76,6 +85,13 @@ Vect2& positive_modulo(Vect2& v, const double modulo) {
   v.x = positive_modulo(v.x, modulo);
   v.y = positive_modulo(v.y, modulo);
   return v;
+}
+
+std::string Vect3::str() const {
+  std::stringstream ss;
+  ss << std::fixed << std::setprecision(5);
+  ss << "Vect3(x=" << this->x << ", y=" << this->y << ", z=" << this->z << ")";
+  return ss.str();
 }
 
 double temperature_distribution(
@@ -98,8 +114,25 @@ void export_Vect2(py::module& m) {
       .def_readwrite("y", &Vect2::y)
       .def("norm", &Vect2::norm)
       .def("norm_sq", &Vect2::norm_sq)
+      .def("__repr__", [](const Vect2& v) { return "<" + v.str() + ">"; })
+      .def(py::self == py::self)
       .def(py::self + py::self)
       .def(py::self - py::self)
       .def(py::self * py::self)
       .def(py::self * float());
+}
+
+void export_Vect3(py::module& m) {
+  py::class_<Vect3> vect3(m, "Vect3");
+  vect3
+      .def(
+          py::init<double, double, double>(),
+          py::arg("x") = 0,
+          py::arg("y") = 0,
+          py::arg("z") = 0)
+      .def_readwrite("x", &Vect3::x)
+      .def_readwrite("y", &Vect3::y)
+      .def_readwrite("z", &Vect3::z)
+      .def("__repr__", [](const Vect3& v) { return "<" + v.str() + ">"; })
+      .def(py::self == py::self);
 }

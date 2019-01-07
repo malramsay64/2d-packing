@@ -8,7 +8,7 @@
 
 import pytest
 
-from _packing import Mirror
+from _packing import Mirror, SymmetryTransform, Vect2, Vect3
 
 
 def mirror_states():
@@ -19,3 +19,8 @@ def mirror_states():
 def test_Mirror(state):
     angle = int(state[1:])
     assert Mirror(angle) == getattr(Mirror, state)
+
+
+def test_SymmetryTransform():
+    st = SymmetryTransform(Vect3(1, 0, 0), Vect3(0, 1, 0), 0, Mirror(0))
+    assert st.real_to_fractional(Vect3(0.5, 0.5, 0)) == Vect2(0.5, 0.5)

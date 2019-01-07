@@ -35,6 +35,7 @@ struct Vect2 {
   Vect2 operator%(const double other) const;
   friend std::ostream& operator<<(std::ostream&, const Vect2&);
 
+  std::string str() const;
   double norm_sq() const;
   double norm() const;
 };
@@ -49,6 +50,8 @@ struct Vect3 {
   Vect3(const double x, const double y, const double z) : x(x), y(y), z(z){};
 
   bool operator==(const Vect3& other) const;
+
+  std::string str() const;
 };
 
 double temperature_distribution(
@@ -58,5 +61,6 @@ double temperature_distribution(
     const std::size_t replicas);
 
 void export_Vect2(pybind11::module& m);
+void export_Vect3(pybind11::module& m);
 
 #endif /* !MATH_H */

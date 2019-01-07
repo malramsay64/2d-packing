@@ -41,9 +41,9 @@ std::ostream& operator<<(std::ostream& os, const SymmetryTransform& symmetry) {
 Vect2 SymmetryTransform::real_to_fractional(const Vect3& real) const {
   /* converts site variables and wyckoff site coefficients into the location
    * of the actual wyckoff image in fractional coordinates */
-  Vect2 v(0, 0);
-  v.x = this->x_coeffs.x * real.x + this->x_coeffs.y * real.y + this->x_coeffs.z;
-  v.y = this->y_coeffs.x * real.x + this->y_coeffs.y * real.y + this->y_coeffs.z;
+  Vect2 v(
+      this->x_coeffs.x * real.x + this->x_coeffs.y * real.y + this->x_coeffs.z,
+      this->y_coeffs.x * real.x + this->y_coeffs.y * real.y + this->y_coeffs.z);
   return positive_modulo(v, 1.);
 }
 
