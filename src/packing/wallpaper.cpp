@@ -14,6 +14,7 @@
 #include <vector>
 
 #include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/spdlog.h>
 
@@ -172,8 +173,8 @@ void export_SymmetryTransform(py::module& m) {
           py::init<const Vect3&, const Vect3&, const double, Mirror>(),
           py::arg("x_coeffs"),
           py::arg("y_coeffs"),
-          py::arg("rotation_offset"),
-          py::arg("mirror"))
+          py::arg("rotation_offset") = 0,
+          py::arg("mirror") = Mirror::m0)
       .def("real_to_fractional", &SymmetryTransform::real_to_fractional);
 }
 
@@ -189,9 +190,9 @@ void export_WyckoffSite(py::module& m) {
               const std::size_t>(),
           py::arg("letter"),
           py::arg("symmetries"),
-          py::arg("variability"),
-          py::arg("rotations"),
-          py::arg("mirrors"))
+          py::arg("variability") = 0,
+          py::arg("rotations") = 1,
+          py::arg("mirrors") = 0)
       .def("multiplicity", &WyckoffSite::multiplicity)
       .def("vary_x", &WyckoffSite::vary_x)
       .def("vary_y", &WyckoffSite::vary_y)
