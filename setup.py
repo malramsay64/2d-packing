@@ -23,14 +23,7 @@ def get_version():
     return g["__version__"]
 
 
-install_requires = [
-    "click~=7.0",
-    "attrs",
-    "numexpr",
-    "ruamel.yaml",
-    "requests",
-    "beautifulsoup4",
-]
+install_requires = ["click~=7.0", "attrs", "ruamel.yaml", "requests", "beautifulsoup4"]
 
 dev_requires = ["pytest~=3.9", "black==18.9b0", "pylint", "hypothesis"]
 

@@ -10,9 +10,9 @@
 
 """
 
+import operator
 import re
 
-import numexpr
 from ruamel.yaml import YAML, yaml_object
 
 yaml = YAML(typ="unsafe")
@@ -61,6 +61,63 @@ class WyckoffInfo:
         return WyckoffInfo(*[element.string for element in row.find_all("td")])
 
 
+def string_iterator(string, x, y):
+    for char in string:
+        # Ignore whitespace
+        if char == " ":
+            continue
+
+        if char == "x":
+            yield float(x)
+        elif char == "y":
+            yield float(y)
+        # Integer values
+        elif char not in ["-", "*", "+", "/"]:
+            yield int(char)
+        else:
+            yield char
+
+
+def evaluate(string, x, y):
+    operators = {
+        "+": operator.add,
+        "-": operator.sub,
+        "*": operator.mul,
+        "/": operator.truediv,
+    }
+
+    string_list = [item for item in list(string) if item not in [" "]]
+    if string_list[0] == "-":
+        string_list = ["0"] + string_list
+    previous = ""
+
+    for index, item in enumerate(string_list):
+        if item in ["x", "y"] and str.isdigit(previous):
+            string_list = string_list[:index] + ["*"] + string_list[index:]
+        previous = item
+
+    for index, item in enumerate(string_list):
+        if str.isdigit(item):
+            string_list[index] = int(item)
+
+    for index, item in enumerate(string_list):
+        if item == "x":
+            string_list[index] = x
+        elif item == "y":
+            string_list[index] = y
+
+    for op_char in ["*", "/", "-", "+"]:
+        for index, item in enumerate(string_list):
+            if item == op_char:
+                op_func = operators[op_char]
+                value = op_func(string_list[index - 1], string_list[index + 1])
+                string_list = (
+                    string_list[: index - 1] + [value] + string_list[index + 2 :]
+                )
+
+    return string_list[0]
+
+
 @yaml_object(yaml)
 class SymmetryOps:
     def __init__(self, string):
@@ -69,7 +126,7 @@ class SymmetryOps:
         self.y_op = self.y_op.strip()
 
     def convert(self, x, y):
-        return numexpr.evaluate(self.x_op), numexpr.evaluate(self.y_op)
+        return evaluate(self.x_op, x, y), evaluate(self.y_op, x, y)
 
     def __repr__(self):
         return f"SymOp(x={self.x_op}, y={self.y_op})"
@@ -82,7 +139,15 @@ class SymmetryOps:
         y_vals = [x[1] - c[1], y[1] - c[1], c[1]]
         return [x_vals, y_vals]
 
-    def matrix_convert(self, x, y):
+    def _matrix_convert(self, x, y):
+        """Convert coordinates using symmetry operations.
+
+        This is primarily a function for testing that the conversion to the matrix has
+        been performed correctly. Comparing the conversion using the standard
+        representation and the matrix representation should generate the same results.
+
+        """
+
         mat = self.create_matrix()
         x_ret = mat[0][0] * x + mat[0][1] * y + mat[0][2]
         y_ret = mat[1][0] * x + mat[1][1] * y + mat[1][2]
