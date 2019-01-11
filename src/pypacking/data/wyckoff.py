@@ -15,33 +15,51 @@ import re
 
 from ruamel.yaml import YAML, yaml_object
 
+from _packing import Mirror
+
 yaml = YAML(typ="unsafe")
 
 
 @yaml_object(yaml)
 class WyckoffInfo:
     yaml_tag: str = "WyckoffInfo"
+    wallpaper_group: str
     multiplicity: int
     letter: str
     rot: int
-    mirror_x: bool
+    mirror_p: bool
     mirror_y: bool
     coordinates: str
 
-    def __init__(self, multiplicity, letter, symmetries, coordinates):
+    def __init__(self, wallpaper_group, multiplicity, letter, symmetries, coordinates):
+        self.wallpaper_group = str(wallpaper_group)
         self.multiplicity = int(multiplicity)
         self.letter = str(letter)
-        self.rot, self.mirror_x, self.mirror_y = self.parse_symmetries(symmetries)
+        self.rot, self.mirror_p, self.mirror_s = self.parse_symmetries(symmetries)
         self.coordinates = self.parse_coordinates(coordinates)
 
     @staticmethod
     def parse_symmetries(symmetry):
-        if "m" not in (symmetry) and "." not in symmetry:
-            return (int(symmetry), False, False)
-        symmetry = list(symmetry)
+        if len(symmetry) < 3:
+            symmetry += ".."
         if symmetry[0] == ".":
-            symmetry[0] = 1
-        return (int(symmetry[0]), "m" in symmetry[1], "m" in symmetry[2])
+            rot_symmetry = 1
+        else:
+            rot_symmetry = int(symmetry[0])
+
+        # Configuring values of mirror
+        mirror_p = Mirror(90)
+        if rot_symmetry in [3, 6]:
+            mirror_p = Mirror(60)
+        mirror_s = Mirror(180 // rot_symmetry)
+
+        # Set mirrors to 0 if not a symmetry group
+        if symmetry[1] != "m":
+            mirror_p = Mirror(0)
+        if symmetry[2] != "m":
+            mirror_s = Mirror(0)
+
+        return (rot_symmetry, mirror_p, mirror_s)
 
     @staticmethod
     def parse_coordinates(coordinates):
@@ -50,15 +68,17 @@ class WyckoffInfo:
 
     def __repr__(self):
         return (
-            f"WyckoffInfo(letter='{self.letter}', "
+            f"WyckoffInfo({self.wallpaper_group}, letter='{self.letter}', "
             f"mult={self.multiplicity},  rot={self.rot}, "
-            f"mirror_x={self.mirror_x}, mirror_y={self.mirror_y}, "
+            f"mirror_p={self.mirror_p}, mirror_s={self.mirror_s}, "
             f"coordinates='{self.coordinates}')"
         )
 
     @classmethod
-    def from_row(cls, row):
-        return WyckoffInfo(*[element.string for element in row.find_all("td")])
+    def from_row(cls, wallpaper_group, row):
+        return WyckoffInfo(
+            wallpaper_group, *[element.string for element in row.find_all("td")]
+        )
 
 
 def string_iterator(string, x, y):

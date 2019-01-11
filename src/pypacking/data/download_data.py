@@ -18,18 +18,21 @@ file, and have a number of transformations implemented.
 
 """
 
+import re
 from pathlib import Path
 
 import requests
 from bs4 import BeautifulSoup
 
-from wyckoff import SymmetryOps, WyckoffInfo, yaml
+from .wyckoff import SymmetryOps, WyckoffInfo, yaml
 
 
 def parse_page(content):
     soup = BeautifulSoup(content, "html.parser")
+    re_string = r"^Wyckoff Positions of Plane Group (?P<group>.*) \(.*\)$"
+    wallpaper_group = re.sub(re_string, "\g<group>", soup.h2.text).replace(" ", "")
     table = soup.find(lambda tag: tag.name == "table" and tag.has_attr("border"))
-    return [WyckoffInfo.from_row(row) for row in table.find_all("tr")]
+    return [WyckoffInfo.from_row(wallpaper_group, row) for row in table.find_all("tr")]
 
 
 def get_wallpaper_groups():
